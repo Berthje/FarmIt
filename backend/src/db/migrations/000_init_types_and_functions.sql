@@ -2,11 +2,15 @@
 DROP TYPE IF EXISTS item_type_enum CASCADE;
 DROP TYPE IF EXISTS rarity_enum CASCADE;
 DROP TYPE IF EXISTS season_enum CASCADE;
+DROP TYPE IF EXISTS plot_type_enum CASCADE;
+DROP TYPE IF EXISTS structure_type_enum CASCADE;
 
 -- Create ENUM types
 CREATE TYPE item_type_enum AS ENUM ('crops', 'tools');
 CREATE TYPE rarity_enum AS ENUM ('common', 'uncommon', 'rare', 'epic', 'legendary');
 CREATE TYPE season_enum AS ENUM ('spring', 'summer', 'fall', 'winter');
+CREATE TYPE plot_type_enum AS ENUM ('locked', 'grass', 'farmland', 'tree', 'structure');
+CREATE TYPE structure_type_enum AS ENUM ('house', 'barn', 'silo', 'well', 'fence', 'path', 'decoration');
 
 -- Common validation functions
 CREATE OR REPLACE FUNCTION validate_item_exists(item_type item_type_enum, item_id integer)
@@ -161,3 +165,58 @@ BEGIN
   RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql;
+
+-- World Functions
+CREATE OR REPLACE FUNCTION update_farm_plot_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_farm_plot_timestamp
+    BEFORE UPDATE ON farm_plots
+    FOR EACH ROW
+    EXECUTE FUNCTION update_farm_plot_timestamp();
+    
+CREATE OR REPLACE FUNCTION initialize_user_world(p_user_id INTEGER)
+RETURNS VOID AS $$
+DECLARE
+    x INTEGER;
+    y INTEGER;
+BEGIN
+    -- Create 100x100 grid
+    FOR x IN 0..99 LOOP
+        FOR y IN 0..99 LOOP
+            INSERT INTO farm_plots (
+                user_id,
+                x_coord,
+                y_coord,
+                plot_type
+            ) VALUES (
+                p_user_id,
+                x,
+                y,
+                CASE
+                    WHEN x < 10 AND y < 10 THEN 'grass'  -- Initial 10x10 area
+                    ELSE 'locked'                        -- Locked plots
+                END
+            );
+        END LOOP;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION create_user_world()
+RETURNS TRIGGER AS $$
+BEGIN
+    PERFORM initialize_user_world(NEW.id);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER after_user_created
+    AFTER INSERT ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION create_user_world();
