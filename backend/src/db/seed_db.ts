@@ -96,20 +96,75 @@ async function seedAuctions() {
         INTERVAL '24 hours',
         INTERVAL '3 days'
       ]) as duration
+    ),
+    numbered_users AS (
+      SELECT id, ROW_NUMBER() OVER (ORDER BY id) as user_num
+      FROM users
+    ),
+    auction_data AS (
+      SELECT
+        u.id as seller_id,
+        c.id as crop_id,
+        d.duration,
+        ROW_NUMBER() OVER (ORDER BY c.id, d.duration) as rn
+      FROM numbered_users u
+      CROSS JOIN crops c
+      CROSS JOIN durations d
+      WHERE c.rarity IN ('rare', 'epic')
     )
     INSERT INTO auctions (seller_id, item_type, item_id, current_bid, ends_at)
     SELECT
-      u.id,
+      seller_id,
       'crops',
-      c.id,
-      c.base_price,
-      CURRENT_TIMESTAMP + d.duration
-    FROM users u
-    CROSS JOIN crops c
-    CROSS JOIN durations d
-    WHERE c.rarity IN ('rare', 'epic')
-    LIMIT 6
+      crop_id,
+      (SELECT base_price FROM crops WHERE id = crop_id),
+      CURRENT_TIMESTAMP + duration
+    FROM auction_data
+    WHERE rn <= 6
     ON CONFLICT DO NOTHING
+  `);
+}
+
+async function seedAuctionBids() {
+	await query(`
+    WITH RECURSIVE bid_sequence AS (
+      SELECT 1 as seq
+      UNION ALL
+      SELECT seq + 1 FROM bid_sequence WHERE seq < 3
+    ),
+    valid_bidders AS (
+      SELECT
+        a.id as auction_id,
+        u.id as bidder_id,
+        a.current_bid as base_bid
+      FROM auctions a
+      CROSS JOIN users u
+      WHERE u.id != a.seller_id
+      AND a.ends_at > CURRENT_TIMESTAMP
+    )
+    INSERT INTO auction_bids (auction_id, bidder_id, bid_amount, created_at)
+    SELECT
+      auction_id,
+      bidder_id,
+      (base_bid + (seq * 50)),
+      CURRENT_TIMESTAMP - INTERVAL '1 hour' * (3 - seq)
+    FROM valid_bidders
+    CROSS JOIN bid_sequence
+    ORDER BY auction_id, seq
+    ON CONFLICT DO NOTHING
+  `);
+
+	await query(`
+    UPDATE auctions a
+    SET current_bid = (
+      SELECT MAX(bid_amount)
+      FROM auction_bids ab
+      WHERE ab.auction_id = a.id
+    )
+    WHERE EXISTS (
+      SELECT 1 FROM auction_bids ab
+      WHERE ab.auction_id = a.id
+    )
   `);
 }
 
@@ -124,6 +179,7 @@ export async function seedDatabase() {
 	await seedInventory();
 	await seedMarketListings();
 	await seedAuctions();
+	await seedAuctionBids();
 
 	console.log("Database seeded with initial data!");
 }
