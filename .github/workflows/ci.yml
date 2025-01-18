@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.1.6
+
+      - name: Install dependencies (Frontend)
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Install dependencies (Backend)
+        working-directory: ./backend
+        run: deno install
+
+      - name: Run Deno fmt (Backend)
+        working-directory: ./backend
+        run: deno fmt --check
+
+      - name: Run Tests (Backend)
+        working-directory: ./backend
+        run: deno test
