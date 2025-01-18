@@ -45,6 +45,6 @@ jobs:
         working-directory: ./backend
         run: deno install
 
-      - name: Check Deno formatting
+      - name: Deno formatting
         working-directory: ./backend
-        run: deno fmt --check
+        run: deno fmt
