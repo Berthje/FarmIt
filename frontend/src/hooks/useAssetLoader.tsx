@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { GAME_ASSETS } from '../assets/constants';
+import { useEffect, useState } from "react";
+import { GAME_ASSETS } from "../assets/constants";
 
 interface LoadingState {
   loaded: boolean;
@@ -13,7 +13,7 @@ const useAssetLoader = () => {
     loaded: false,
     progress: 0,
     errors: [],
-    currentFile: ''
+    currentFile: "",
   });
 
   useEffect(() => {
@@ -43,8 +43,12 @@ const useAssetLoader = () => {
 
     const loadAllAssets = async () => {
       const allFiles = [
-        ...Object.values(GAME_ASSETS.SPRITES).flatMap(category => Object.values(category)),
-        ...Object.values(GAME_ASSETS.AUDIO).flatMap(category => Object.values(category))
+        ...Object.values(GAME_ASSETS.SPRITES).flatMap((category) =>
+          Object.values(category)
+        ),
+        ...Object.values(GAME_ASSETS.AUDIO).flatMap((category) =>
+          Object.values(category)
+        ),
       ].flat();
 
       const totalFiles = allFiles.length;
@@ -53,30 +57,30 @@ const useAssetLoader = () => {
 
       await Promise.all(
         allFiles.map(async (src) => {
-          const filename = src.split('/').pop() || src;
-          setState(prev => ({
+          const filename = src.split("/").pop() || src;
+          setState((prev) => ({
             ...prev,
-            currentFile: filename
+            currentFile: filename,
           }));
 
           try {
-            await (src.endsWith('.png') ? loadImage(src) : loadAudio(src));
+            await (src.endsWith(".png") ? loadImage(src) : loadAudio(src));
             loadedCount++;
-            setState(prev => ({
+            setState((prev) => ({
               ...prev,
-              progress: (loadedCount / totalFiles) * 100
+              progress: (loadedCount / totalFiles) * 100,
             }));
           } catch (err) {
             errors.push(err as string);
           }
-        })
+        }),
       );
 
       setState({
         loaded: errors.length === 0,
         progress: 100,
         errors,
-        currentFile: ''
+        currentFile: "",
       });
     };
 

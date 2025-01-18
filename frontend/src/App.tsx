@@ -13,6 +13,6 @@ const App: React.FC = () => {
       </div>
     </LoadingScreen>
   );
-}
+};
 
 export default App;

@@ -13,11 +13,11 @@ export const GAME_ASSETS = {
       SWEET_POTATO: "/assets/sprites/vegetables/sweet_potato.png",
       GINGER_ROOT: "/assets/sprites/vegetables/ginger_root.png",
       PURPLE_YAM: "/assets/sprites/vegetables/purple_yam.png",
-      KOHLRABI: "/assets/sprites/vegetables/kohlrabi.png"
+      KOHLRABI: "/assets/sprites/vegetables/kohlrabi.png",
     },
     TOOLS: {
-      HOE: "/assets/sprites/tools/hoe.png",
-      WATERING_CAN: "/assets/sprites/tools/watering_can.png",
+      // HOE: "/assets/sprites/tools/hoe.png",
+      // WATERING_CAN: "/assets/sprites/tools/watering_can.png",
     },
     UI: {
       COIN: "/assets/sprites/ui/coin.png",
