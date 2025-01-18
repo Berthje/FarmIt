@@ -35,45 +35,45 @@ async function seedPlotPrices() {
 
 async function seedFarmPlots() {
   await query(`
-    WITH user_plots AS (
-      SELECT
-        u.id as user_id,
-        x.coord as x_coord,
-        y.coord as y_coord,
-        CASE
-          WHEN x.coord < 10 AND y.coord < 10 THEN 'grass'
-          ELSE 'locked'
-        END as plot_type,
-        CASE
-          WHEN x.coord < 10 AND y.coord < 10 THEN CURRENT_TIMESTAMP
-          ELSE NULL
-        END as purchase_date,
-        CASE
-          WHEN x.coord < 10 AND y.coord < 10 THEN 100
-          ELSE NULL
-        END as purchase_price
-      FROM users u
-      CROSS JOIN generate_series(0, 99) AS x(coord)
-      CROSS JOIN generate_series(0, 99) AS y(coord)
-    )
-    INSERT INTO farm_plots (
-      user_id,
-      x_coord,
-      y_coord,
-      plot_type,
-      purchase_date,
-      purchase_price
-    )
+  WITH user_plots AS (
     SELECT
-      user_id,
-      x_coord,
-      y_coord,
-      plot_type,
-      purchase_date,
-      purchase_price
-    FROM user_plots
-    ON CONFLICT DO NOTHING
-  `);
+      u.id as user_id,
+      x.coord as x_coord,
+      y.coord as y_coord,
+      CASE
+        WHEN x.coord < 10 AND y.coord < 10 THEN 'grass'
+        ELSE 'locked'
+      END as plot_type,
+      CASE
+        WHEN x.coord < 10 AND y.coord < 10 THEN CURRENT_TIMESTAMP
+        ELSE NULL
+      END as purchase_date,
+      CASE
+        WHEN x.coord < 10 AND y.coord < 10 THEN 100
+        ELSE NULL
+      END as purchase_price
+    FROM users u
+    CROSS JOIN generate_series(0, 99) AS x(coord)
+    CROSS JOIN generate_series(0, 99) AS y(coord)
+  )
+  INSERT INTO farm_plots (
+    user_id,
+    x_coord,
+    y_coord,
+    plot_type,
+    purchase_date,
+    purchase_price
+  )
+  SELECT
+    user_id,
+    x_coord,
+    y_coord,
+    plot_type::plot_type_enum,
+    purchase_date,
+    purchase_price
+  FROM user_plots
+  ON CONFLICT DO NOTHING
+`);
 }
 
 async function seedTools() {
@@ -269,17 +269,17 @@ async function seedAuctionBids() {
 export async function seedDatabase() {
 	console.log("Seeding database...");
 
-  await seedUsers();
-  await seedPlayerStats();
-  await seedPlotPrices();
-  await seedCrops();
-  await seedTools();
-  await seedFarmPlots();
-  await seedInitialInventory();
-  await seedStructures();
-  await seedMarketListings();
-  await seedAuctions();
-  await seedAuctionBids();
+	await seedUsers();
+	await seedPlayerStats();
+	await seedPlotPrices();
+	await seedCrops();
+	await seedTools();
+	await seedFarmPlots();
+	await seedInitialInventory();
+	await seedStructures();
+	await seedMarketListings();
+	await seedAuctions();
+	await seedAuctionBids();
 
 	console.log("Database seeded with initial data!");
 }
