@@ -90,17 +90,25 @@ async function seedMarketListings() {
 
 async function seedAuctions() {
 	await query(`
+    WITH durations AS (
+      SELECT unnest(ARRAY[
+        INTERVAL '8 hours',
+        INTERVAL '24 hours',
+        INTERVAL '3 days'
+      ]) as duration
+    )
     INSERT INTO auctions (seller_id, item_type, item_id, current_bid, ends_at)
     SELECT
       u.id,
       'crops',
       c.id,
       c.base_price,
-      CURRENT_TIMESTAMP + INTERVAL '1 day'
+      CURRENT_TIMESTAMP + d.duration
     FROM users u
     CROSS JOIN crops c
+    CROSS JOIN durations d
     WHERE c.rarity IN ('rare', 'epic')
-    LIMIT 3
+    LIMIT 6
     ON CONFLICT DO NOTHING
   `);
 }
