@@ -1,7 +1,7 @@
 import { query } from "./db.ts";
 
 async function seedUsers() {
-  await query(`
+	await query(`
     INSERT INTO users (username, email, password_hash) VALUES
     ('farmer_john', 'john@farm.com', 'hash1'),
     ('crop_master', 'master@farm.com', 'hash2'),
@@ -12,52 +12,112 @@ async function seedUsers() {
 }
 
 async function seedPlayerStats() {
-  await query(`
+	await query(`
     INSERT INTO player_stats (user_id, level, experience, coins)
     SELECT id, 1, 0, 1000 FROM users
     ON CONFLICT DO NOTHING
   `);
 }
 
-async function seedTools() {
-  await query(`
-    INSERT INTO tools (name, durability, rarity, base_price) VALUES
-    ('Basic Hoe', 100, 'common', 50),
-    ('Watering Can', 150, 'common', 75),
-    ('Golden Scythe', 500, 'rare', 300),
-    ('Magic Shears', 1000, 'epic', 1000)
-    ON CONFLICT DO NOTHING
-  `);
-}
-
-async function seedCrops() {
-  await query(`
-    INSERT INTO crops (name, growth_time, season, rarity, base_price) VALUES
-    ('Wheat', 120, 'summer', 'common', 10),
-    ('Corn', 180, 'summer', 'common', 15),
-    ('Tomato', 240, 'summer', 'common', 20),
-    ('Golden Apple', 480, 'fall', 'rare', 100),
-    ('Magic Bean', 360, 'spring', 'epic', 200)
+async function seedPlotPrices() {
+	await query(`
+    INSERT INTO plot_prices
+    (plots_owned_range_start, plots_owned_range_end, base_price, multiplier)
+    VALUES
+    (0, 100, 100, 1.00),     -- First 100 plots: 100 coins
+    (101, 200, 150, 1.25),   -- Next 100: 187 coins each
+    (201, 300, 200, 1.50),   -- Next 100: 300 coins each
+    (301, 400, 250, 1.75),   -- Next 100: 437 coins each
+    (401, 500, 300, 2.00)    -- Final 100: 600 coins each
     ON CONFLICT DO NOTHING
   `);
 }
 
 async function seedFarmPlots() {
   await query(`
-    INSERT INTO farm_plots (user_id, x_coord, y_coord)
+    WITH user_plots AS (
+      SELECT
+        u.id as user_id,
+        x.coord as x_coord,
+        y.coord as y_coord,
+        CASE
+          WHEN x.coord < 10 AND y.coord < 10 THEN 'grass'::plot_type_enum
+          ELSE 'locked'::plot_type_enum
+        END as plot_type,
+        CASE
+          WHEN x.coord < 10 AND y.coord < 10 THEN CURRENT_TIMESTAMP
+          ELSE NULL
+        END as purchase_date,
+        CASE
+          WHEN x.coord < 10 AND y.coord < 10 THEN 100
+          ELSE NULL
+        END as purchase_price
+      FROM users u
+      CROSS JOIN generate_series(0, 99) AS x(coord)
+      CROSS JOIN generate_series(0, 99) AS y(coord)
+    )
+    INSERT INTO farm_plots (
+      user_id,
+      x_coord,
+      y_coord,
+      plot_type,
+      purchase_date,
+      purchase_price
+    )
     SELECT
-      u.id,
-      x.coord,
-      y.coord
-    FROM users u
-    CROSS JOIN generate_series(0, 3) AS x(coord)
-    CROSS JOIN generate_series(0, 3) AS y(coord)
+      user_id,
+      x_coord,
+      y_coord,
+      plot_type,
+      purchase_date,
+      purchase_price
+    FROM user_plots
     ON CONFLICT DO NOTHING
   `);
 }
 
-async function seedInventory() {
-  await query(`
+async function seedTools() {
+	await query(`
+    INSERT INTO tools (name, durability, rarity, base_price) VALUES
+    ('Basic Hoe', 100, 'common', 50),
+    ('Watering Can', 150, 'common', 75)
+    ON CONFLICT DO NOTHING
+  `);
+}
+
+async function seedCrops() {
+	await query(`
+    INSERT INTO crops (name, growth_time, season, rarity, base_price) VALUES
+    -- Common Crops
+    ('Carrot', 60, 'spring', 'common', 10),
+    ('Potato', 90, 'spring', 'common', 15),
+    ('Turnip', 45, 'spring', 'common', 8),
+    ('Corn', 120, 'summer', 'common', 20),
+    ('Tomato', 90, 'summer', 'common', 18),
+    ('Pumpkin', 180, 'fall', 'common', 30),
+
+    -- Uncommon Crops
+    ('Sweet Potato', 120, 'fall', 'uncommon', 45),
+    ('Purple Yam', 150, 'fall', 'uncommon', 55)
+    ON CONFLICT DO NOTHING
+  `);
+}
+
+async function seedInitialInventory() {
+	await query(`
+    -- Give each user basic tools to start
+    INSERT INTO inventory (user_id, item_type, item_id, quantity)
+    SELECT
+      u.id,
+      'tools',
+      t.id,
+      1
+    FROM users u
+    CROSS JOIN tools t
+    WHERE t.rarity = 'common'
+    ON CONFLICT DO NOTHING;
+
+    -- Give each user some starter crops
     INSERT INTO inventory (user_id, item_type, item_id, quantity)
     SELECT
       u.id,
@@ -67,12 +127,37 @@ async function seedInventory() {
     FROM users u
     CROSS JOIN crops c
     WHERE c.rarity = 'common'
-    ON CONFLICT DO NOTHING
+    AND c.season = 'spring'
+    ON CONFLICT DO NOTHING;
+  `);
+}
+
+async function seedStructures() {
+	await query(`
+    -- Add some initial structures to the first 10x10 area
+    WITH user_structures AS (
+      SELECT
+        u.id as user_id,
+        'house' as structure_type,
+        5 as x_coord,
+        5 as y_coord
+      FROM users u
+    )
+    UPDATE farm_plots fp
+    SET
+      structure_type = us.structure_type,
+      plot_type = 'structure',
+      structure_health = 100,
+      last_maintained_at = CURRENT_TIMESTAMP
+    FROM user_structures us
+    WHERE fp.user_id = us.user_id
+    AND fp.x_coord = us.x_coord
+    AND fp.y_coord = us.y_coord
   `);
 }
 
 async function seedMarketListings() {
-  await query(`
+	await query(`
     INSERT INTO market_listings (seller_id, item_type, item_id, quantity, price_per_unit)
     SELECT
       u.id,
@@ -89,7 +174,7 @@ async function seedMarketListings() {
 }
 
 async function seedAuctions() {
-  await query(`
+	await query(`
     WITH durations AS (
       SELECT unnest(ARRAY[
         INTERVAL '8 hours',
@@ -139,7 +224,7 @@ async function seedAuctions() {
 }
 
 async function seedAuctionBids() {
-  await query(`
+	await query(`
     WITH RECURSIVE bid_sequence AS (
       SELECT 1 as seq
       UNION ALL
@@ -167,7 +252,7 @@ async function seedAuctionBids() {
     ON CONFLICT DO NOTHING
   `);
 
-  await query(`
+	await query(`
     UPDATE auctions a
     SET current_bid = (
       SELECT MAX(bid_amount)
@@ -182,17 +267,19 @@ async function seedAuctionBids() {
 }
 
 export async function seedDatabase() {
-  console.log("Seeding database...");
+	console.log("Seeding database...");
 
   await seedUsers();
   await seedPlayerStats();
-  await seedTools();
+  await seedPlotPrices();
   await seedCrops();
+  await seedTools();
   await seedFarmPlots();
-  await seedInventory();
+  await seedInitialInventory();
+  await seedStructures();
   await seedMarketListings();
   await seedAuctions();
   await seedAuctionBids();
 
-  console.log("Database seeded with initial data!");
+	console.log("Database seeded with initial data!");
 }
