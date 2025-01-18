@@ -8,7 +8,6 @@ dist/
 # Deno
 *.deno
 deno.lock
-deno.json
 .deno/
 
 # Logs
