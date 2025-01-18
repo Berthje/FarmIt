@@ -16,6 +16,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Cache npm dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-
+
       - name: Set up Deno
         uses: denoland/setup-deno@v2
         with:
@@ -23,7 +31,7 @@ jobs:
 
       - name: Install dependencies (Frontend)
         working-directory: ./frontend
-        run: npm install
+        run: npm ci
 
       - name: Install dependencies (Backend)
         working-directory: ./backend
