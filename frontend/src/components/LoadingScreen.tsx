@@ -19,13 +19,14 @@ export const LoadingScreen = ({ children }: { children: React.ReactNode }) => {
   if (!show) {
     return <>{children}</>;
   }
+
   return (
     <div
       className={`fixed inset-0 bg-gradient-to-b from-green-600 to-green-800 flex flex-col items-center justify-center transition-opacity duration-1000 ${
-        fadeOut ? "opacity-0" : "opacity-100"
+        fadeOut ? 'opacity-0' : 'opacity-100'
       }`}
     >
-      <div className="mb-8 text-center">
+      <div className={`mb-8 text-center transition-opacity duration-1000 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}>
         <h1 className="text-6xl font-bold text-yellow-300 mb-2 animate-bounce">
           FarmIt
         </h1>
@@ -43,13 +44,13 @@ export const LoadingScreen = ({ children }: { children: React.ReactNode }) => {
         </div>
       </div>
 
-      <div className="mt-4 text-green-200">
+      <div className={`mt-4 text-green-200 transition-opacity duration-1000 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}>
         <p className="text-lg">Loading Assets: {Math.floor(progress)}%</p>
         {currentFile && (
           <p className="text-sm opacity-75">Loading: {currentFile}</p>
         )}
         {errors.length > 0 && (
-          <div className="mt-4 text-red-400 bg-red-900 p-4 rounded-lg max-w-md">
+          <div className="mt-4 text-red-400 bg-red-900 p-4 rounded-lg max-w-md transition-opacity duration-1000">
             <h3 className="font-bold mb-2">Loading Errors:</h3>
             {errors.map((error, i) => (
               <p key={i} className="text-sm">{error}</p>
@@ -58,8 +59,8 @@ export const LoadingScreen = ({ children }: { children: React.ReactNode }) => {
         )}
       </div>
 
-      <div className="fixed bottom-0 w-full h-32 bg-gradient-to-t from-green-900 to-transparent" />
-      <div className="fixed top-0 w-full h-32 bg-gradient-to-b from-green-900 to-transparent" />
+      <div className={`fixed bottom-0 w-full h-32 bg-gradient-to-t from-green-900 to-transparent transition-opacity duration-1000 ${fadeOut ? 'opacity-0' : 'opacity-100'}`} />
+      <div className={`fixed top-0 w-full h-32 bg-gradient-to-b from-green-900 to-transparent transition-opacity duration-1000 ${fadeOut ? 'opacity-0' : 'opacity-100'}`} />
     </div>
   );
 };
