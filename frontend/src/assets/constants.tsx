@@ -4,8 +4,6 @@ export const GAME_ASSETS = {
       WHEAT: "/assets/sprites/crops/wheat.png",
       CORN: "/assets/sprites/crops/corn.png",
       TOMATO: "/assets/sprites/crops/tomato.png",
-      GOLDEN_APPLE: "/assets/sprites/crops/golden_apple.png",
-      MAGIC_BEAN: "/assets/sprites/crops/magic_bean.png",
     },
     TOOLS: {
       HOE: "/assets/sprites/tools/hoe.png",
