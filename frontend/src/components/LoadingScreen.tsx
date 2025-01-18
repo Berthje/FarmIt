@@ -2,7 +2,7 @@ import React from 'react';
 import useAssetLoader from '../hooks/useAssetLoader';
 
 export const LoadingScreen = ({ children }: { children: React.ReactNode }) => {
-  const { loaded, progress, errors } = useAssetLoader();
+  const { loaded, currentFile, progress, errors } = useAssetLoader();
 
   if (!loaded) {
     return (
@@ -27,6 +27,9 @@ export const LoadingScreen = ({ children }: { children: React.ReactNode }) => {
 
         <div className="mt-4 text-green-200">
           <p className="text-lg">Loading Assets: {Math.floor(progress)}%</p>
+          {currentFile && (
+    <p className="text-sm opacity-75">Loading: {currentFile}</p>
+  )}
           {errors.length > 0 && (
             <div className="mt-4 text-red-400 bg-red-900 p-4 rounded-lg max-w-md">
               <h3 className="font-bold mb-2">Loading Errors:</h3>

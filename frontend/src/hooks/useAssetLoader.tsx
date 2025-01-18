@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
-import { GAME_ASSETS } from "../assets/constants";
+import { useState, useEffect } from 'react';
+import { GAME_ASSETS } from '../assets/constants';
 
 interface LoadingState {
   loaded: boolean;
   progress: number;
   errors: string[];
+  currentFile: string;
 }
 
 const useAssetLoader = () => {
@@ -12,12 +13,13 @@ const useAssetLoader = () => {
     loaded: false,
     progress: 0,
     errors: [],
+    currentFile: ''
   });
 
   useEffect(() => {
     const loadImage = (src: string): Promise<void> => {
       return new Promise((resolve, reject) => {
-        const img = new Image();
+        const img = new window.Image();
         img.src = src;
         img.onload = () => resolve();
         img.onerror = () => reject(`Failed to load image: ${src}`);
@@ -26,7 +28,7 @@ const useAssetLoader = () => {
 
     const loadAudio = (src: string): Promise<void> => {
       return new Promise((resolve, reject) => {
-        const audio = new Audio();
+        const audio = new window.Audio();
         audio.src = src;
         audio.oncanplaythrough = () => resolve();
         audio.onerror = () => reject(`Failed to load audio: ${src}`);
@@ -34,44 +36,41 @@ const useAssetLoader = () => {
     };
 
     const loadAllAssets = async () => {
-      const imageFiles = Object.values(GAME_ASSETS.SPRITES)
-        .flatMap((category) => Object.values(category))
-        .flat();
+      const allFiles = [
+        ...Object.values(GAME_ASSETS.SPRITES).flatMap(category => Object.values(category)),
+        ...Object.values(GAME_ASSETS.AUDIO).flatMap(category => Object.values(category))
+      ].flat();
 
-      const audioFiles = Object.values(GAME_ASSETS.AUDIO)
-        .flatMap((category) => Object.values(category))
-        .flat();
-
-      const totalAssets = imageFiles.length + audioFiles.length;
-      let loadedCount = 0;
+      const totalFiles = allFiles.length;
       const errors: string[] = [];
+      let loadedCount = 0;
 
-      const updateProgress = () => {
-        loadedCount++;
-        setState((prev) => ({
-          ...prev,
-          progress: (loadedCount / totalAssets) * 100,
-        }));
-      };
+      await Promise.all(
+        allFiles.map(async (src) => {
+          const filename = src.split('/').pop() || src;
+          setState(prev => ({
+            ...prev,
+            currentFile: filename
+          }));
 
-      // Load all assets in parallel
-      await Promise.all([
-        ...imageFiles.map((src) =>
-          loadImage(src)
-            .then(updateProgress)
-            .catch((err) => errors.push(err))
-        ),
-        ...audioFiles.map((src) =>
-          loadAudio(src)
-            .then(updateProgress)
-            .catch((err) => errors.push(err))
-        ),
-      ]);
+          try {
+            await (src.endsWith('.png') ? loadImage(src) : loadAudio(src));
+            loadedCount++;
+            setState(prev => ({
+              ...prev,
+              progress: (loadedCount / totalFiles) * 100
+            }));
+          } catch (err) {
+            errors.push(err as string);
+          }
+        })
+      );
 
       setState({
         loaded: errors.length === 0,
         progress: 100,
         errors,
+        currentFile: ''
       });
     };
 
