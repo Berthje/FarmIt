@@ -105,6 +105,7 @@ async function seedAuctions() {
       SELECT
         u.id as seller_id,
         c.id as crop_id,
+        c.base_price as base_price,
         d.duration,
         ROW_NUMBER() OVER (ORDER BY c.id, d.duration) as rn
       FROM numbered_users u
@@ -112,12 +113,24 @@ async function seedAuctions() {
       CROSS JOIN durations d
       WHERE c.rarity IN ('rare', 'epic')
     )
-    INSERT INTO auctions (seller_id, item_type, item_id, current_bid, ends_at)
+    INSERT INTO auctions (
+      seller_id,
+      item_type,
+      item_id,
+      current_bid,
+      min_bid,
+      reserve_price,
+      buy_now_price,
+      ends_at
+    )
     SELECT
       seller_id,
       'crops',
       crop_id,
-      (SELECT base_price FROM crops WHERE id = crop_id),
+      base_price,              -- Starting bid
+      base_price,              -- Min bid
+      base_price * 2,          -- Reserve price
+      base_price * 3,          -- Buy now price
       CURRENT_TIMESTAMP + duration
     FROM auction_data
     WHERE rn <= 6

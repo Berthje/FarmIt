@@ -127,15 +127,37 @@ $$ LANGUAGE plpgsql;
 -- Auction validation
 CREATE OR REPLACE FUNCTION validate_auction(
   p_current_bid INTEGER,
+  p_min_bid INTEGER,
+  p_reserve_price INTEGER,
+  p_buy_now_price INTEGER,
   p_ends_at TIMESTAMP
 ) RETURNS BOOLEAN AS $$
 BEGIN
   IF p_current_bid < 0 THEN
     RAISE EXCEPTION 'Current bid cannot be negative';
   END IF;
+
+  IF p_min_bid <= 0 THEN
+    RAISE EXCEPTION 'Minimum bid must be positive';
+  END IF;
+
+  IF p_reserve_price IS NOT NULL AND p_reserve_price <= p_min_bid THEN
+    RAISE EXCEPTION 'Reserve price must be higher than minimum bid';
+  END IF;
+
+  IF p_buy_now_price IS NOT NULL THEN
+    IF p_buy_now_price <= p_min_bid THEN
+      RAISE EXCEPTION 'Buy now price must be higher than minimum bid';
+    END IF;
+    IF p_reserve_price IS NOT NULL AND p_buy_now_price <= p_reserve_price THEN
+      RAISE EXCEPTION 'Buy now price must be higher than reserve price';
+    END IF;
+  END IF;
+
   IF p_ends_at <= CURRENT_TIMESTAMP THEN
     RAISE EXCEPTION 'End time must be in the future';
   END IF;
+
   RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql;
