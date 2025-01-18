@@ -2,45 +2,45 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.9.0'
 
       - name: Cache npm dependencies
         uses: actions/cache@v3
         with:
           path: ~/.npm
-          key: npm-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            npm-${{ runner.os }}-
+            ${{ runner.os }}-npm-
 
-      - name: Set up Deno
-        uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.1.6
-
-      - name: Install dependencies (Frontend)
+      - name: Initialize and Install (Frontend)
         working-directory: ./frontend
-        run: npm ci
+        run: |
+          if [ ! -f "package-lock.json" ]; then
+            npm init -y
+            npm install
+          else
+            npm ci
+          fi
 
-      - name: Install dependencies (Backend)
+      - name: Cache Deno dependencies
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: '2.1.6'
+
+      - name: Check Deno formatting
         working-directory: ./backend
-        run: deno install
-
-      - name: Run Deno fmt (Backend)
-        working-directory: ./backend
-        run: deno fmt
-
-      # - name: Run Tests (Backend)
-      #   working-directory: ./backend
-      #   run: deno test
+        run: deno fmt --check
