@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { GAME_ASSETS } from "../assets/constants.tsx";
+import { GAME_ASSETS } from "../assets/constants";
 
 interface LoadingState {
   loaded: boolean;

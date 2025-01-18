@@ -7,7 +7,6 @@ export const LoadingScreen = ({ children }: { children: React.ReactNode }) => {
   if (!loaded) {
     return (
       <div className="fixed inset-0 bg-gradient-to-b from-green-600 to-green-800 flex flex-col items-center justify-center">
-        {/* Title Section */}
         <div className="mb-8 text-center">
           <h1 className="text-6xl font-bold text-yellow-300 mb-2 animate-bounce">
             FarmIt
@@ -17,7 +16,6 @@ export const LoadingScreen = ({ children }: { children: React.ReactNode }) => {
           </p>
         </div>
 
-        {/* Loading Bar Section */}
         <div className="w-80 bg-green-900 rounded-lg p-1 shadow-xl border-2 border-green-400">
           <div
             className="h-6 bg-gradient-to-r from-yellow-400 to-yellow-300 rounded transition-all duration-300 relative overflow-hidden"
@@ -27,7 +25,6 @@ export const LoadingScreen = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
 
-        {/* Loading Text */}
         <div className="mt-4 text-green-200">
           <p className="text-lg">Loading Assets: {Math.floor(progress)}%</p>
           {errors.length > 0 && (
@@ -40,7 +37,6 @@ export const LoadingScreen = ({ children }: { children: React.ReactNode }) => {
           )}
         </div>
 
-        {/* Decorative Elements */}
         <div className="fixed bottom-0 w-full h-32 bg-gradient-to-t from-green-900 to-transparent" />
         <div className="fixed top-0 w-full h-32 bg-gradient-to-b from-green-900 to-transparent" />
       </div>
