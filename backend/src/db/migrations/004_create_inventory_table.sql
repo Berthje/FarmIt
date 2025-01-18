@@ -1,0 +1,8 @@
+CREATE TABLE inventory (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id),
+  item_type VARCHAR(20) NOT NULL,
+  item_id INTEGER NOT NULL,
+  quantity INTEGER DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
