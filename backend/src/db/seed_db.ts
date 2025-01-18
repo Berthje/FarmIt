@@ -41,8 +41,8 @@ async function seedFarmPlots() {
         x.coord as x_coord,
         y.coord as y_coord,
         CASE
-          WHEN x.coord < 10 AND y.coord < 10 THEN 'grass'::plot_type_enum
-          ELSE 'locked'::plot_type_enum
+          WHEN x.coord < 10 AND y.coord < 10 THEN 'grass'
+          ELSE 'locked'
         END as plot_type,
         CASE
           WHEN x.coord < 10 AND y.coord < 10 THEN CURRENT_TIMESTAMP
