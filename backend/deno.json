@@ -55,7 +55,8 @@
     "tasks": {
         "start": "deno run --env --allow-env --allow-net --allow-read --allow-write src/start.ts",
         "test": "deno test --coverage; deno coverage; deno coverage --html",
-        "qa": "rm -rf coverage; deno fmt && deno lint && deno test --coverage --ignore=node_modules,deno.land && deno coverage && deno coverage --html"
+        "qa": "rm -rf coverage; deno fmt && deno lint && deno test --coverage --ignore=node_modules,deno.land && deno coverage && deno coverage --html",
+        "db:reset": "deno run --allow-env --allow-net src/db/reset_db.ts"
     },
     "imports": {
         "@oak/oak": "jsr:@oak/oak@^17.1.4",
