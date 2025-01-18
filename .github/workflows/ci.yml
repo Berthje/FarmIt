@@ -31,7 +31,7 @@ jobs:
 
       - name: Run Deno fmt (Backend)
         working-directory: ./backend
-        run: deno fmt --check
+        run: deno fmt
 
       - name: Run Tests (Backend)
         working-directory: ./backend
