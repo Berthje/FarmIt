@@ -4,6 +4,10 @@ CREATE INDEX idx_farm_plots_crop_id ON farm_plots(crop_id);
 CREATE INDEX idx_farm_plots_coords ON farm_plots(x_coord, y_coord);
 CREATE INDEX idx_farm_plots_planted ON farm_plots(planted_at);
 
+-- Tools indexes
+CREATE INDEX idx_tools_rarity ON tools(rarity);
+CREATE INDEX idx_tools_price ON tools(base_price);
+
 -- Inventory indexes
 CREATE INDEX idx_inventory_user_id ON inventory(user_id);
 CREATE INDEX idx_inventory_item_lookup ON inventory(item_type, item_id);

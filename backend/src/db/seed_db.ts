@@ -19,6 +19,17 @@ async function seedPlayerStats() {
   `);
 }
 
+async function seedTools() {
+	await query(`
+    INSERT INTO tools (name, durability, rarity, base_price) VALUES
+    ('Basic Hoe', 100, 'common', 50),
+    ('Watering Can', 150, 'common', 75),
+    ('Golden Scythe', 500, 'rare', 300),
+    ('Magic Shears', 1000, 'epic', 1000)
+    ON CONFLICT DO NOTHING
+  `);
+}
+
 async function seedCrops() {
 	await query(`
     INSERT INTO crops (name, growth_time, season, rarity, base_price) VALUES
@@ -99,6 +110,7 @@ export async function seedDatabase() {
 
 	await seedUsers();
 	await seedPlayerStats();
+	await seedTools();
 	await seedCrops();
 	await seedFarmPlots();
 	await seedInventory();

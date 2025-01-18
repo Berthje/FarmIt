@@ -75,6 +75,22 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Tool validation
+CREATE OR REPLACE FUNCTION validate_tool(
+  p_durability INTEGER,
+  p_base_price INTEGER
+) RETURNS BOOLEAN AS $$
+BEGIN
+  IF p_durability <= 0 THEN
+    RAISE EXCEPTION 'Tool durability must be positive';
+  END IF;
+  IF p_base_price <= 0 THEN
+    RAISE EXCEPTION 'Tool base price must be positive';
+  END IF;
+  RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Farm plot validation
 CREATE OR REPLACE FUNCTION validate_farm_plot(
   p_x_coord INTEGER,
