@@ -1,12 +1,17 @@
-import React from 'react';
-import './App.css';
+import React from "react";
+import { LoadingScreen } from "./components/LoadingScreen";
 
-function App() {
+const App: React.FC = () => {
   return (
-    <div className="App">
-      <h1>Welcome to FarmIt!</h1>
-    </div>
+    <LoadingScreen>
+      <div className="min-h-screen bg-green-800">
+        <div className="text-center p-4 text-white">
+          <h1 className="text-4xl">Welcome to FarmIt</h1>
+          <p>Your farming adventure begins!</p>
+        </div>
+      </div>
+    </LoadingScreen>
   );
-}
+};
 
 export default App;
