@@ -123,19 +123,3 @@ BEGIN
   RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql;
-
--- Auction bid validation
-CREATE OR REPLACE FUNCTION validate_auction_bid(
-  p_bid_amount INTEGER,
-  p_current_bid INTEGER
-) RETURNS BOOLEAN AS $$
-BEGIN
-  IF p_bid_amount <= 0 THEN
-    RAISE EXCEPTION 'Bid amount must be positive';
-  END IF;
-  IF p_bid_amount <= p_current_bid THEN
-    RAISE EXCEPTION 'Bid must be higher than current bid';
-  END IF;
-  RETURN TRUE;
-END;
-$$ LANGUAGE plpgsql;
