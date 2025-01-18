@@ -1,19 +1,19 @@
-version: '3'
+version: "3"
 
 services:
-  backend:
-    build:
-      context: .
-      dockerfile: ./backend/Dockerfile
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./backend:/app/backend
-    environment:
-      - DENO_ENV=development
-    networks:
-      - farmit-network
+    backend:
+        build:
+            context: .
+            dockerfile: ./backend/Dockerfile
+        ports:
+            - "8000:8000"
+        volumes:
+            - ./backend:/app/backend
+        environment:
+            - DENO_ENV=development
+        networks:
+            - farmit-network
 
 networks:
-  farmit-network:
-    driver: bridge
+    farmit-network:
+        driver: bridge
