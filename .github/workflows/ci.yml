@@ -38,7 +38,7 @@ jobs:
 
       - name: Install Deno dependencies
         working-directory: ./backend
-        run: deno cache src/deps.ts
+        run: deno install
 
       - name: Check Deno formatting
         working-directory: ./backend
