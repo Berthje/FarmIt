@@ -7,7 +7,7 @@ CREATE TABLE auction_bids (
   CONSTRAINT positive_bid CHECK (bid_amount > 0)
 );
 
-CREATE FUNCTION validate_auction_bid_insert() RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION validate_auction_bid_insert() RETURNS TRIGGER AS $$
 BEGIN
   -- Check if bid is higher than current bid
   IF NEW.bid_amount <= (
