@@ -36,10 +36,9 @@ jobs:
             npm ci
           fi
 
-      - name: Cache Deno dependencies
-        uses: denoland/setup-deno@v1
-        with:
-          deno-version: '2.1.6'
+      - name: Install Deno dependencies
+        working-directory: ./backend
+        run: deno cache src/deps.ts
 
       - name: Check Deno formatting
         working-directory: ./backend
