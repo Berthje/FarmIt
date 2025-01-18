@@ -1,0 +1,65 @@
+{
+    "compilerOptions": {
+        "lib": [
+            "deno.window"
+        ],
+        "strict": true,
+        "noErrorTruncation": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": false,
+        "noUncheckedIndexedAccess": true
+    },
+    "lint": {
+        "include": [
+            "src/"
+        ],
+        "exclude": [
+            "old/"
+        ],
+        "rules": {
+            "tags": [
+                "recommended"
+            ],
+            "include": [
+                "ban-untagged-todo"
+            ],
+            "exclude": []
+        }
+    },
+    "fmt": {
+        "useTabs": true,
+        "lineWidth": 140,
+        "indentWidth": 4,
+        "semiColons": true,
+        "singleQuote": false,
+        "proseWrap": "preserve",
+        "include": [
+            "src/"
+        ],
+        "exclude": [
+            "old/"
+        ]
+    },
+    "lock": false,
+    "nodeModulesDir": "none",
+    "test": {
+        "include": [
+            "tests/"
+        ],
+        "exclude": [
+            "old/"
+        ]
+    },
+    "tasks": {
+        "start": "deno run --env --allow-env --allow-net --allow-read --allow-write src/start.ts",
+        "test": "deno test --coverage; deno coverage; deno coverage --html",
+        "qa": "rm -rf coverage; deno fmt && deno lint && deno test --coverage --ignore=node_modules,deno.land && deno coverage && deno coverage --html"
+    },
+    "imports": {
+        "@oak/oak": "jsr:@oak/oak@^17.1.4",
+        "@x/djwt": "https://deno.land/x/djwt@v3.0.2/mod.ts",
+        "@x/postgres": "https://deno.land/x/postgres@v0.19.3/mod.ts"
+    }
+}

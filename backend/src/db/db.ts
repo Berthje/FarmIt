@@ -1,4 +1,4 @@
-import { Pool } from "postgres";
+import { Pool } from "@x/postgres";
 
 const pool = new Pool({
   user: Deno.env.get("DB_USER"),
