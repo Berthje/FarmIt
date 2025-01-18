@@ -1,4 +1,5 @@
 import { Pool } from "@x/postgres";
+import "jsr:@std/dotenv/load";
 
 const pool = new Pool({
   user: Deno.env.get("DB_USER"),
