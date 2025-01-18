@@ -167,6 +167,30 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- World Functions
+CREATE OR REPLACE FUNCTION calculate_plot_price(p_user_id INTEGER)
+RETURNS INTEGER AS $$
+DECLARE
+    owned_plots INTEGER;
+    price_record RECORD;
+BEGIN
+    -- Count currently owned plots
+    SELECT COUNT(*) INTO owned_plots
+    FROM farm_plots
+    WHERE user_id = p_user_id
+    AND plot_type != 'locked';
+
+    -- Get price data for the current range
+    SELECT * INTO price_record
+    FROM plot_prices
+    WHERE owned_plots >= plots_owned_range_start
+    AND owned_plots <= plots_owned_range_end
+    ORDER BY plots_owned_range_start ASC
+    LIMIT 1;
+
+    -- Calculate final price
+    RETURN CEIL(price_record.base_price * price_record.multiplier);
+END;
+$$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION update_farm_plot_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -179,7 +203,7 @@ CREATE TRIGGER update_farm_plot_timestamp
     BEFORE UPDATE ON farm_plots
     FOR EACH ROW
     EXECUTE FUNCTION update_farm_plot_timestamp();
-    
+
 CREATE OR REPLACE FUNCTION initialize_user_world(p_user_id INTEGER)
 RETURNS VOID AS $$
 DECLARE

@@ -25,3 +25,5 @@ CREATE INDEX idx_auction_bids_auction_id ON auction_bids(auction_id);
 CREATE INDEX idx_auction_bids_bidder_id ON auction_bids(bidder_id);
 CREATE INDEX idx_auction_bids_amount ON auction_bids(auction_id, bid_amount DESC);
 
+-- Plot Prices
+CREATE INDEX idx_plot_prices_ranges ON plot_prices(plots_owned_range_start, plots_owned_range_end);
