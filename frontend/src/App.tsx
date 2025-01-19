@@ -13,7 +13,7 @@ const App: React.FC = () => {
 
     return (
         <LoadingScreen>
-            <div className="min-h-screen">
+            <div className="min-h-screen bg-black">
                 <GameHUD playerData={playerData} />
             </div>
         </LoadingScreen>

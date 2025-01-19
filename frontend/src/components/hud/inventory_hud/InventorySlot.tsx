@@ -11,6 +11,13 @@ interface InventorySlotProps {
     isEmpty: boolean;
 }
 
+const formatQuantity = (quantity: number): string => {
+    if (quantity >= 1000) {
+        return `${(quantity / 1000).toFixed(1)}K`;
+    }
+    return quantity.toString();
+};
+
 export const InventorySlot: React.FC<InventorySlotProps> = ({
     item,
     isSelected,
@@ -24,8 +31,7 @@ export const InventorySlot: React.FC<InventorySlotProps> = ({
             className={`
                 w-14 h-14 relative
                 ${isEmpty ? "bg-green-800/50" : "bg-green-800"}
-                rounded-lg
-                border-2
+                rounded-lg border-2
                 ${
                     isSelected
                         ? "border-yellow-400 shadow-[0_0_10px_rgba(234,179,8,0.3)]"
@@ -49,20 +55,19 @@ export const InventorySlot: React.FC<InventorySlotProps> = ({
                         <span
                             className="
                             absolute bottom-0.5 right-0.5
-                            text-xs font-bold
-                            bg-green-900/80 px-1 rounded-sm
+                            min-w-[1.5rem] px-1
+                            text-xs font-bold text-center
+                            bg-green-900/80 rounded-sm
                             text-yellow-400
                         "
                         >
-                            {item.quantity}
+                            {formatQuantity(item.quantity)}
                         </span>
                     )}
                     <div
                         className={`
-                        absolute inset-0
-                        rounded-md
-                        bg-yellow-400/10
-                        opacity-0
+                        absolute inset-0 rounded-md
+                        bg-yellow-400/10 opacity-0
                         ${isSelected ? "opacity-100" : "group-hover:opacity-50"}
                         transition-opacity duration-200
                     `}
