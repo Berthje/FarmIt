@@ -1,17 +1,23 @@
 import React from "react";
 import { LoadingScreen } from "./components/LoadingScreen";
+import { GameHUD } from "./components/hud/GameHUD";
 
 const App: React.FC = () => {
-  return (
-    <LoadingScreen>
-      <div className="min-h-screen bg-green-800">
-        <div className="text-center p-4 text-white">
-          <h1 className="text-4xl">Welcome to FarmIt</h1>
-          <p>Your farming adventure begins!</p>
-        </div>
-      </div>
-    </LoadingScreen>
-  );
+    const playerData = {
+        username: "TestPlayer",
+        level: 1,
+        xp: 50,
+        maxXp: 100,
+        coins: 1000,
+    };
+
+    return (
+        <LoadingScreen>
+            <div className="min-h-screen">
+                <GameHUD playerData={playerData} />
+            </div>
+        </LoadingScreen>
+    );
 };
 
 export default App;
