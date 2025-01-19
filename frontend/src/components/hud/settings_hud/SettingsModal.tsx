@@ -17,7 +17,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
 
     const handleVolumeChange = (type: VolumeType, value: number) => {
         setVolumes((prev) => ({ ...prev, [type]: value }));
-        // Here ytrigger actual volume changes in your audio system
+        // Here ytrigger actual volume changes in audio system
     };
 
     return (
