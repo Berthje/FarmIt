@@ -16,9 +16,10 @@
 
 ### Enums
 
-- **item_type_enum**: ('crops', 'tools')
+- **item_type_enum**: ('plantable', 'tool')
 - **rarity_enum**: ('common', 'uncommon', 'rare', 'epic', 'legendary')
 - **season_enum**: ('spring', 'summer', 'fall', 'winter')
+- **plantable_category_enum**: ('vegetable', 'grain')
 
 ### Tables
 
@@ -39,15 +40,6 @@
 - `experience`: BIGINT DEFAULT 0 (accumulated XP)
 - `coins`: BIGINT DEFAULT 0 (in-game currency)
 
-#### crops
-
-- `id`: SERIAL PRIMARY KEY
-- `name`: VARCHAR(50) (crop name)
-- `growth_time`: INTEGER (minutes to mature)
-- `season`: season_enum (growing season)
-- `rarity`: rarity_enum (crop value tier)
-- `base_price`: INTEGER (minimum value)
-
 #### tools
 
 - `id`: SERIAL PRIMARY KEY
@@ -55,16 +47,6 @@
 - `durability`: INTEGER (usage limit)
 - `rarity`: rarity_enum (tool tier)
 - `base_price`: INTEGER (shop price)
-
-#### farm_plots
-
-- `id`: SERIAL PRIMARY KEY
-- `user_id`: INTEGER FK (plot owner)
-- `x_coord`: INTEGER (horizontal position)
-- `y_coord`: INTEGER (vertical position)
-- `crop_id`: INTEGER FK (planted crop)
-- `planted_at`: TIMESTAMP (planting time)
-- `growth_stage`: INTEGER (crop progress)
 
 #### inventory
 
@@ -106,71 +88,138 @@
 - `bid_amount`: INTEGER (bid value)
 - `created_at`: TIMESTAMP (bid time)
 
+#### worlds
+- `id`: SERIAL PRIMARY KEY
+- `user_id`: INTEGER FK (references users)
+- `created_at`: TIMESTAMP WITH TIME ZONE
+- `last_visited`: TIMESTAMP WITH TIME ZONE
+
+#### world_tiles
+- `id`: SERIAL PRIMARY KEY
+- `world_id`: INTEGER FK (references worlds)
+- `x_coord`: INTEGER NOT NULL
+- `y_coord`: INTEGER NOT NULL
+- `locked`: BOOLEAN DEFAULT TRUE
+- `terrain_type`: VARCHAR(50) DEFAULT 'grass'
+
+#### plantables
+- `id`: SERIAL PRIMARY KEY
+- `name`: VARCHAR(50) (plant name)
+- `category`: plantable_category_enum
+- `growth_time`: INTEGER (minutes to mature)
+- `seasons`: season_enum[] (valid growing seasons)
+- `rarity`: rarity_enum
+- `base_price`: INTEGER
+- `harvest_min`: INTEGER
+- `harvest_max`: INTEGER
+- `regrows`: BOOLEAN
+- `regrow_time`: INTEGER
+- `properties`: JSONB
+
+#### planted_crops
+- `id`: SERIAL PRIMARY KEY
+- `tile_id`: INTEGER FK (references world_tiles)
+- `plantable_id`: INTEGER FK (references plantables)
+- `planted_at`: TIMESTAMP WITH TIME ZONE
+- `last_watered_at`: TIMESTAMP WITH TIME ZONE
+- `growth_stage`: INTEGER (0-4)
+- `health`: INTEGER (0-100)
+- `properties`: JSONB
+
+### Growth Stages
+0. Seed (Just planted)
+1. Sprout (Initial growth)
+2. Growing (Mid development)
+3. Maturing (Nearly ready)
+4. Harvestable (Ready for collection)
+
+### Constraints
+- One plant per tile (UNIQUE constraint)
+- Valid growth_stage (0-4)
+- Valid health range (0-100)
+- Valid tile reference
+- Valid plantable reference
+
 ---
 
 ## 3. Validation Functions
 
 ### validate_user()
-
-- Ensures username length is within the accepted range.
-- Validates email format using regex patterns.
+- Validates username length (min 3 chars)
+- Validates email format
 
 ### validate_player_stats()
+- Validates level is positive
+- Validates experience is non-negative
+- Validates coins are non-negative
 
-- Validates `level`, `experience`, and `coins` to ensure no negative or invalid
-  values.
-
-### validate_crop()
-
-- Checks that growth time is reasonable.
-- Validates season is a valid `season_enum` value.
-- Ensures base price is positive.
+### validate_plant()
+- Validates growth_time is positive
+- Validates base_price is positive
+- Validates harvest_min/max ranges
 
 ### validate_tool()
-
-- Validates durability is non-negative.
-- Checks base price validity.
-
-### validate_farm_plot()
-
-- Verifies coordinates are unique per user.
-- Ensures `growth_stage` is valid based on `planted_at`.
+- Validates durability is positive
+- Validates base_price is positive
 
 ### validate_market_listing()
-
-- Checks `quantity` and `price_per_unit` for positive integers.
-- Ensures `item_id` and `item_type` alignment.
+- Validates quantity is positive
+- Validates price_per_unit is positive
 
 ### validate_auction()
+- Validates bid amounts hierarchy
+- Validates end time is future
+- Validates price relationships
 
-- Validates bid amounts, ensuring `min_bid <= current_bid`.
-- Confirms `ends_at` is a valid future timestamp.
+### validate_world()
+- Validates world dimensions
+- Ensures positive dimensions
 
-### validate_auction_bid()
+### validate_world_tile()
+- Validates x_coord/y_coord non-negative
+- Ensures unique tiles per world
 
-- Ensures `bid_amount` is greater than `current_bid`.
-- Handles bid auto-completion logic.
+### validate_item_exists()
+- Validates plantable items exist
+- Validates tool items exist
 
 ---
-
-## 4. Performance Optimizations
 
 ### Indexes
 
-- **User-based queries**: `idx_users_user_id`, `idx_player_stats_user_id`
-- **Item lookups**: `idx_inventory_item_lookup`
-- **Auction management**: `idx_auctions_item_id`, `idx_auctions_seller_id`
-- **Bid tracking**: `idx_auction_bids_auction_id`, `idx_auction_bids_bidder_id`
+- **World indexes**
+  - `idx_worlds_user_id`
+  - `idx_worlds_created_at`
+
+- **World tiles indexes**
+  - `idx_world_tiles_world_id`
+  - `idx_world_tiles_coords`
+
+- **Tools indexes**
+  - `idx_tools_rarity`
+  - `idx_tools_price`
+
+- **Inventory indexes**
+  - `idx_inventory_user_id`
+  - `idx_inventory_item_lookup`
+  - `idx_inventory_quantity`
+
+- **Market indexes**
+  - `idx_market_listings_seller_id`
+  - `idx_market_listings_item_lookup`
+  - `idx_market_listings_price`
+
+- **Auction indexes**
+  - `idx_auctions_seller_id`
+  - `idx_auctions_item_lookup`
+  - `idx_auctions_ends_at`
+  - `idx_auction_bids_auction_id`
+  - `idx_auction_bids_bidder_id`
+  - `idx_auction_bids_amount`
+
+- **Planted crops indexes**
+  - `idx_planted_crops_tile`
+  - `idx_planted_crops_plantable`
+  - `idx_planted_crops_growth`
 
 ---
-
-## 5. Security Features
-
-- **Password Hashing**: Uses industry-standard algorithms (e.g., bcrypt) to
-  securely store passwords.
-- **Input Validation**: Ensures all inputs are sanitized to prevent SQL
-  injection and XSS attacks.
-- **Transaction Isolation**: Implements proper isolation levels to avoid race
-  conditions and ensure data integrity.
-- **Anti-Exploitation Measures**: Includes rate-limiting and bot-detection
-  algorithms.

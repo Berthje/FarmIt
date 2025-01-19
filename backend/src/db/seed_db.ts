@@ -1,7 +1,7 @@
 import { query } from "./db.ts";
 
 async function seedUsers() {
-  await query(`
+	await query(`
     INSERT INTO users (username, email, password_hash) VALUES
     ('farmer_john', 'john@farm.com', 'hash1'),
     ('crop_master', 'master@farm.com', 'hash2'),
@@ -12,7 +12,7 @@ async function seedUsers() {
 }
 
 async function seedPlayerStats() {
-  await query(`
+	await query(`
     INSERT INTO player_stats (user_id, level, experience, coins)
     SELECT id, 1, 0, 1000 FROM users
     ON CONFLICT DO NOTHING
@@ -20,7 +20,7 @@ async function seedPlayerStats() {
 }
 
 async function seedTools() {
-  await query(`
+	await query(`
     INSERT INTO tools (name, durability, rarity, base_price) VALUES
     ('Basic Hoe', 100, 'common', 50),
     ('Watering Can', 150, 'common', 75),
@@ -30,66 +30,95 @@ async function seedTools() {
   `);
 }
 
-async function seedCrops() {
-  await query(`
-    INSERT INTO crops (name, growth_time, season, rarity, base_price) VALUES
-    ('Wheat', 120, 'summer', 'common', 10),
-    ('Corn', 180, 'summer', 'common', 15),
-    ('Tomato', 240, 'summer', 'common', 20),
-    ('Golden Apple', 480, 'fall', 'rare', 100),
-    ('Magic Bean', 360, 'spring', 'epic', 200)
+async function seedPlantables() {
+	await query(`
+    INSERT INTO plantables (
+      name,
+      category,
+      growth_time,
+      seasons,
+      base_price,
+      harvest_min,
+      harvest_max,
+      properties
+    ) VALUES
+    ('Beetroot', 'vegetable', 120, ARRAY['summer','fall']::season_enum[], 15, 1, 2, '{"water_needs": "medium"}'),
+    ('Carrot', 'vegetable', 100, ARRAY['spring','fall']::season_enum[], 12, 1, 3, '{"water_needs": "medium"}'),
+    ('Garlic', 'vegetable', 90, ARRAY['spring']::season_enum[], 18, 1, 1, '{"water_needs": "low"}'),
+    ('Gingeroot', 'vegetable', 150, ARRAY['summer']::season_enum[], 25, 1, 2, '{"water_needs": "high"}'),
+    ('Kohlrabi', 'vegetable', 110, ARRAY['spring','fall']::season_enum[], 20, 1, 2, '{"water_needs": "medium"}'),
+    ('Onion', 'vegetable', 100, ARRAY['spring','summer']::season_enum[], 10, 1, 2, '{"water_needs": "medium"}'),
+    ('Parsnip', 'vegetable', 95, ARRAY['fall']::season_enum[], 15, 1, 2, '{"water_needs": "medium"}'),
+    ('Potato', 'vegetable', 140, ARRAY['spring','summer']::season_enum[], 20, 2, 4, '{"water_needs": "medium"}'),
+    ('Purple Yam', 'vegetable', 160, ARRAY['summer']::season_enum[], 30, 1, 2, '{"water_needs": "high"}'),
+    ('Radish', 'vegetable', 70, ARRAY['spring','summer','fall']::season_enum[], 8, 1, 3, '{"water_needs": "medium"}'),
+    ('Sweet Potato', 'vegetable', 150, ARRAY['summer','fall']::season_enum[], 25, 2, 3, '{"water_needs": "medium"}'),
+    ('Turnip', 'vegetable', 85, ARRAY['spring','fall']::season_enum[], 12, 1, 2, '{"water_needs": "medium"}')
     ON CONFLICT DO NOTHING
   `);
 }
 
-async function seedFarmPlots() {
-  await query(`
-    INSERT INTO farm_plots (user_id, x_coord, y_coord)
-    SELECT
-      u.id,
-      x.coord,
-      y.coord
-    FROM users u
-    CROSS JOIN generate_series(0, 3) AS x(coord)
-    CROSS JOIN generate_series(0, 3) AS y(coord)
-    ON CONFLICT DO NOTHING
+async function seedPlantedCrops() {
+	await query(`
+    INSERT INTO planted_crops
+    (tile_id, plantable_id, planted_at, last_watered_at, growth_stage, health, properties)
+    VALUES
+    -- Carrot patch (early stage)
+    (1, 1, NOW() - INTERVAL '2 days', NOW() - INTERVAL '12 hours', 1, 100,
+    '{"type": "vegetable", "needs_water": false}'::jsonb),
+
+    -- Wheat field (mid growth)
+    (2, 2, NOW() - INTERVAL '4 days', NOW() - INTERVAL '1 day', 2, 90,
+    '{"type": "grain", "needs_water": true}'::jsonb),
+
+    -- Apple tree (mature)
+    (3, 3, NOW() - INTERVAL '10 days', NOW() - INTERVAL '2 days', 4, 95,
+    '{"type": "tree", "fruit_count": 5}'::jsonb),
+
+    -- Tomato plant (ready for harvest)
+    (4, 4, NOW() - INTERVAL '6 days', NOW() - INTERVAL '8 hours', 4, 100,
+    '{"type": "vegetable", "ready_to_harvest": true}'::jsonb),
+
+    -- Potato plant (needs care)
+    (5, 5, NOW() - INTERVAL '3 days', NOW() - INTERVAL '2 days', 1, 50,
+    '{"type": "vegetable", "needs_water": true}'::jsonb)
   `);
 }
 
 async function seedInventory() {
-  await query(`
+	await query(`
     INSERT INTO inventory (user_id, item_type, item_id, quantity)
     SELECT
       u.id,
-      'crops',
-      c.id,
+      'plantable'::item_type_enum,
+      p.id,
       10
     FROM users u
-    CROSS JOIN crops c
-    WHERE c.rarity = 'common'
+    CROSS JOIN plantables p
+    WHERE p.rarity = 'common'
     ON CONFLICT DO NOTHING
   `);
 }
 
 async function seedMarketListings() {
-  await query(`
+	await query(`
     INSERT INTO market_listings (seller_id, item_type, item_id, quantity, price_per_unit)
     SELECT
       u.id,
-      'crops',
-      c.id,
+      'plantable'::item_type_enum,
+      p.id,
       5,
-      c.base_price * 2
+      p.base_price * 2
     FROM users u
-    CROSS JOIN crops c
-    WHERE c.rarity = 'common'
+    CROSS JOIN plantables p
+    WHERE p.rarity = 'common'
     LIMIT 5
     ON CONFLICT DO NOTHING
   `);
 }
 
 async function seedAuctions() {
-  await query(`
+	await query(`
     WITH durations AS (
       SELECT unnest(ARRAY[
         INTERVAL '8 hours',
@@ -104,14 +133,14 @@ async function seedAuctions() {
     auction_data AS (
       SELECT
         u.id as seller_id,
-        c.id as crop_id,
-        c.base_price as base_price,
+        p.id as plantable_id,
+        p.base_price as base_price,
         d.duration,
-        ROW_NUMBER() OVER (ORDER BY c.id, d.duration) as rn
+        ROW_NUMBER() OVER (ORDER BY p.id, d.duration) as rn
       FROM numbered_users u
-      CROSS JOIN crops c
+      CROSS JOIN plantables p
       CROSS JOIN durations d
-      WHERE c.rarity IN ('rare', 'epic')
+      WHERE p.rarity IN ('rare', 'epic')
     )
     INSERT INTO auctions (
       seller_id,
@@ -125,8 +154,8 @@ async function seedAuctions() {
     )
     SELECT
       seller_id,
-      'crops',
-      crop_id,
+      'plantable'::item_type_enum,
+      plantable_id,
       base_price,              -- Starting bid
       base_price,              -- Min bid
       base_price * 2,          -- Reserve price
@@ -139,7 +168,7 @@ async function seedAuctions() {
 }
 
 async function seedAuctionBids() {
-  await query(`
+	await query(`
     WITH RECURSIVE bid_sequence AS (
       SELECT 1 as seq
       UNION ALL
@@ -167,7 +196,7 @@ async function seedAuctionBids() {
     ON CONFLICT DO NOTHING
   `);
 
-  await query(`
+	await query(`
     UPDATE auctions a
     SET current_bid = (
       SELECT MAX(bid_amount)
@@ -182,17 +211,17 @@ async function seedAuctionBids() {
 }
 
 export async function seedDatabase() {
-  console.log("Seeding database...");
+	console.log("Seeding database...");
 
-  await seedUsers();
-  await seedPlayerStats();
-  await seedTools();
-  await seedCrops();
-  await seedFarmPlots();
-  await seedInventory();
-  await seedMarketListings();
-  await seedAuctions();
-  await seedAuctionBids();
+	await seedUsers();
+	await seedPlayerStats();
+	await seedTools();
+	await seedPlantables();
+	await seedPlantedCrops();
+	await seedInventory();
+	await seedMarketListings();
+	await seedAuctions();
+	await seedAuctionBids();
 
-  console.log("Database seeded with initial data!");
+	console.log("Database seeded with initial data!");
 }

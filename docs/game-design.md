@@ -37,11 +37,57 @@ endless fun and growth opportunities.
   - The farm operates on a grid system where each cell represents a plot of
     land.
 
-  - Initially, players start with a 4x4 grid, with opportunities to expand
+  - Initially, players start with a 6x6 grid, with opportunities to expand
     incrementally by purchasing additional land using in-game currency.
 
   - Land expansion introduces strategic planning as players decide between
     maximizing crop yield or creating space for buildings and decorations.
+
+#### **Growth Stages System**
+- **Stage 0 (Seed)**:
+  - Freshly planted
+  - Requires initial watering
+  - Most vulnerable to pests
+  - 0-25% of growth time
+
+- **Stage 1 (Sprout)**:
+  - First leaves visible
+  - Regular watering needed
+  - Sensitive to weather
+  - 25-50% of growth time
+
+- **Stage 2 (Growing)**:
+  - Main development phase
+  - Steady water requirements
+  - Sensitive to weather
+  - 50-75% of growth time
+
+- **Stage 3 (Maturing)**:
+  - Pre-harvest phase
+  - Less water needed
+  - Sensitive to weather
+  - 75-90% of growth time
+
+- **Stage 4 (Harvestable)**:
+  - Ready for collection
+  - Minimal maintenance
+  - Sensitive to weather
+  - Risk of over-ripening
+  - 90-100% of growth time
+
+#### **Plant Properties**
+- Water needs (low/medium/high)
+- Seasonal growth modifiers
+- Growth time
+- Harvest yields (min/max)
+- Quality factors
+- Regrowth capability
+
+#### **Seasonal Effects**
+- **Spring**: Ideal for early crops
+- **Summer**: Heat-resistant plants thrive
+- **Fall**: Root vegetables peak
+- **Winter**: Limited growing options
 
 #### **Crops**
 

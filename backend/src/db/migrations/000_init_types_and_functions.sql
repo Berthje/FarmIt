@@ -2,20 +2,75 @@
 DROP TYPE IF EXISTS item_type_enum CASCADE;
 DROP TYPE IF EXISTS rarity_enum CASCADE;
 DROP TYPE IF EXISTS season_enum CASCADE;
+DROP TYPE IF EXISTS plantable_category_enum CASCADE;
 
 -- Create ENUM types
-CREATE TYPE item_type_enum AS ENUM ('crops', 'tools');
+CREATE TYPE item_type_enum AS ENUM ('plantable', 'tool');
 CREATE TYPE rarity_enum AS ENUM ('common', 'uncommon', 'rare', 'epic', 'legendary');
 CREATE TYPE season_enum AS ENUM ('spring', 'summer', 'fall', 'winter');
+CREATE TYPE plantable_category_enum AS ENUM (
+    'vegetable',
+    'grain'
+    -- Future: 'tree', 'fruit', 'flower', 'magical'
+);
 
 -- Common validation functions
 CREATE OR REPLACE FUNCTION validate_item_exists(item_type item_type_enum, item_id integer)
 RETURNS BOOLEAN AS $$
 BEGIN
   RETURN CASE item_type
-    WHEN 'crops' THEN EXISTS(SELECT 1 FROM crops WHERE id = item_id)
-    WHEN 'tools' THEN EXISTS(SELECT 1 FROM tools WHERE id = item_id)
+    WHEN 'plantable' THEN EXISTS(SELECT 1 FROM plantables WHERE id = item_id)
+    WHEN 'tool' THEN EXISTS(SELECT 1 FROM tools WHERE id = item_id)
   END;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION create_initial_world(p_user_id INTEGER)
+RETURNS VOID AS $$
+DECLARE
+  new_world_id INTEGER;
+BEGIN
+  -- Create world entry
+  INSERT INTO worlds (user_id) VALUES (p_user_id) RETURNING id INTO new_world_id;
+
+  -- Fill 100x100 grid, only middle 6x6 unlocked
+  FOR x IN 0..99 LOOP
+    FOR y IN 0..99 LOOP
+      INSERT INTO world_tiles (world_id, x_coord, y_coord, locked)
+      VALUES (
+        new_world_id,
+        x,
+        y,
+        NOT (x BETWEEN 47 AND 52 AND y BETWEEN 47 AND 52)  -- 6x6 in middle
+      );
+    END LOOP;
+  END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- World validation
+CREATE OR REPLACE FUNCTION validate_world(
+  p_dimension_x INTEGER,
+  p_dimension_y INTEGER
+) RETURNS BOOLEAN AS $$
+BEGIN
+  IF p_dimension_x <= 0 OR p_dimension_y <= 0 THEN
+    RAISE EXCEPTION 'World dimensions must be positive';
+  END IF;
+  RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+/* Validate world tiles */
+CREATE OR REPLACE FUNCTION validate_world_tile(
+  p_x_coord INTEGER,
+  p_y_coord INTEGER
+) RETURNS BOOLEAN AS $$
+BEGIN
+  IF p_x_coord < 0 OR p_y_coord < 0 THEN
+    RAISE EXCEPTION 'Tile coordinates must be non-negative';
+  END IF;
+  RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -59,7 +114,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION validate_crop(
   p_growth_time INTEGER,
   p_base_price INTEGER,
-  p_season VARCHAR
+  p_season season_enum
 ) RETURNS BOOLEAN AS $$
 BEGIN
   IF p_growth_time <= 0 THEN
@@ -86,23 +141,6 @@ BEGIN
   END IF;
   IF p_base_price <= 0 THEN
     RAISE EXCEPTION 'Tool base price must be positive';
-  END IF;
-  RETURN TRUE;
-END;
-$$ LANGUAGE plpgsql;
-
--- Farm plot validation
-CREATE OR REPLACE FUNCTION validate_farm_plot(
-  p_x_coord INTEGER,
-  p_y_coord INTEGER,
-  p_growth_stage INTEGER
-) RETURNS BOOLEAN AS $$
-BEGIN
-  IF p_x_coord < 0 OR p_x_coord >= 100 OR p_y_coord < 0 OR p_y_coord >= 100 THEN
-    RAISE EXCEPTION 'Invalid coordinates (must be 0-99)';
-  END IF;
-  IF p_growth_stage < 0 THEN
-    RAISE EXCEPTION 'Growth stage cannot be negative';
   END IF;
   RETURN TRUE;
 END;
@@ -159,5 +197,33 @@ BEGIN
   END IF;
 
   RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Plantable validation
+CREATE OR REPLACE FUNCTION validate_plant(
+    p_growth_time INTEGER,
+    p_base_price INTEGER,
+    p_harvest_min INTEGER,
+    p_harvest_max INTEGER
+) RETURNS BOOLEAN AS $$
+BEGIN
+    IF p_growth_time <= 0 THEN
+        RAISE EXCEPTION 'Growth time must be positive';
+    END IF;
+
+    IF p_base_price <= 0 THEN
+        RAISE EXCEPTION 'Base price must be positive';
+    END IF;
+
+    IF p_harvest_min < 1 THEN
+        RAISE EXCEPTION 'Minimum harvest must be at least 1';
+    END IF;
+
+    IF p_harvest_max < p_harvest_min THEN
+        RAISE EXCEPTION 'Maximum harvest must be greater than or equal to minimum harvest';
+    END IF;
+
+    RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql;
