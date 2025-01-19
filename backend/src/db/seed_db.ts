@@ -30,14 +30,30 @@ async function seedTools() {
   `);
 }
 
-async function seedCrops() {
+async function seedPlantables() {
   await query(`
-    INSERT INTO crops (name, growth_time, season, rarity, base_price) VALUES
-    ('Wheat', 120, 'summer', 'common', 10),
-    ('Corn', 180, 'summer', 'common', 15),
-    ('Tomato', 240, 'summer', 'common', 20),
-    ('Golden Apple', 480, 'fall', 'rare', 100),
-    ('Magic Bean', 360, 'spring', 'epic', 200)
+    INSERT INTO plantables (
+      name,
+      category,
+      growth_time,
+      season,
+      base_price,
+      harvest_min,
+      harvest_max,
+      properties
+    ) VALUES
+    ('Beetroot', 'vegetable', 120, 'fall', 15, 1, 2, '{"soil_quality": "any", "water_needs": "medium"}'),
+    ('Carrot', 'vegetable', 100, 'spring', 12, 1, 3, '{"soil_depth": 2, "water_needs": "medium"}'),
+    ('Garlic', 'vegetable', 90, 'spring', 18, 1, 1, '{"pest_resistant": true, "water_needs": "low"}'),
+    ('Gingeroot', 'vegetable', 150, 'summer', 25, 1, 2, '{"soil_depth": 3, "water_needs": "high"}'),
+    ('Kohlrabi', 'vegetable', 110, 'fall', 20, 1, 2, '{"cold_resistant": true, "water_needs": "medium"}'),
+    ('Onion', 'vegetable', 100, 'spring', 10, 1, 2, '{"soil_quality": "any", "water_needs": "medium"}'),
+    ('Parsnip', 'vegetable', 95, 'fall', 15, 1, 2, '{"soil_depth": 2, "water_needs": "medium"}'),
+    ('Potato', 'vegetable', 140, 'spring', 20, 2, 4, '{"soil_depth": 3, "water_needs": "medium"}'),
+    ('Purple Yam', 'vegetable', 160, 'summer', 30, 1, 2, '{"soil_depth": 3, "water_needs": "high"}'),
+    ('Radish', 'vegetable', 70, 'spring', 8, 1, 3, '{"soil_depth": 1, "water_needs": "medium"}'),
+    ('Sweet Potato', 'vegetable', 150, 'summer', 25, 2, 3, '{"soil_depth": 3, "water_needs": "medium"}'),
+    ('Turnip', 'vegetable', 85, 'fall', 12, 1, 2, '{"soil_depth": 2, "water_needs": "medium"}')
     ON CONFLICT DO NOTHING
   `);
 }
@@ -47,12 +63,12 @@ async function seedInventory() {
     INSERT INTO inventory (user_id, item_type, item_id, quantity)
     SELECT
       u.id,
-      'crops',
-      c.id,
+      'plantables',
+      p.id,
       10
     FROM users u
-    CROSS JOIN crops c
-    WHERE c.rarity = 'common'
+    CROSS JOIN plantables p
+    WHERE p.rarity = 'common'
     ON CONFLICT DO NOTHING
   `);
 }
@@ -62,13 +78,13 @@ async function seedMarketListings() {
     INSERT INTO market_listings (seller_id, item_type, item_id, quantity, price_per_unit)
     SELECT
       u.id,
-      'crops',
-      c.id,
+      'plantables',
+      p.id,
       5,
-      c.base_price * 2
+      p.base_price * 2
     FROM users u
-    CROSS JOIN crops c
-    WHERE c.rarity = 'common'
+    CROSS JOIN plantables p
+    WHERE p.rarity = 'common'
     LIMIT 5
     ON CONFLICT DO NOTHING
   `);
@@ -90,14 +106,14 @@ async function seedAuctions() {
     auction_data AS (
       SELECT
         u.id as seller_id,
-        c.id as crop_id,
-        c.base_price as base_price,
+        p.id as plantable_id,
+        p.base_price as base_price,
         d.duration,
-        ROW_NUMBER() OVER (ORDER BY c.id, d.duration) as rn
+        ROW_NUMBER() OVER (ORDER BY p.id, d.duration) as rn
       FROM numbered_users u
-      CROSS JOIN crops c
+      CROSS JOIN plantables p
       CROSS JOIN durations d
-      WHERE c.rarity IN ('rare', 'epic')
+      WHERE p.rarity IN ('rare', 'epic')
     )
     INSERT INTO auctions (
       seller_id,
@@ -111,8 +127,8 @@ async function seedAuctions() {
     )
     SELECT
       seller_id,
-      'crops',
-      crop_id,
+      'plantables',
+      plantable_id,
       base_price,              -- Starting bid
       base_price,              -- Min bid
       base_price * 2,          -- Reserve price
@@ -173,7 +189,7 @@ export async function seedDatabase() {
   await seedUsers();
   await seedPlayerStats();
   await seedTools();
-  await seedCrops();
+  await seedPlantables();
   await seedInventory();
   await seedMarketListings();
   await seedAuctions();
