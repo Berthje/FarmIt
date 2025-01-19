@@ -108,6 +108,77 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- World Tile Calculation
+CREATE OR REPLACE FUNCTION calculate_tile_price(p_world_id INTEGER)
+RETURNS INTEGER AS $$
+DECLARE
+    owned_tiles INTEGER;
+BEGIN
+    SELECT COUNT(*)
+    INTO owned_tiles
+    FROM world_tiles
+    WHERE world_id = p_world_id
+    AND locked = false;
+
+    RETURN CASE
+        WHEN owned_tiles < 36 THEN 0           -- Initial 6x6 grid (free)
+        WHEN owned_tiles < 250 THEN 50         -- First tier
+        WHEN owned_tiles < 500 THEN 150        -- Second tier
+        WHEN owned_tiles < 1000 THEN 300       -- Third tier
+        WHEN owned_tiles < 2500 THEN 600       -- Fourth tier
+        WHEN owned_tiles < 5000 THEN 1200      -- Fifth tier
+        WHEN owned_tiles < 7500 THEN 2400      -- Sixth tier
+        ELSE 5000                              -- Final tier
+    END;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to unlock tile
+CREATE OR REPLACE FUNCTION unlock_tile(
+    p_world_id INTEGER,
+    p_x_coord INTEGER,
+    p_y_coord INTEGER,
+    p_user_id INTEGER
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    tile_price INTEGER;
+    user_coins INTEGER;
+BEGIN
+    tile_price := calculate_tile_price(p_world_id);
+
+    SELECT coins INTO user_coins
+    FROM player_stats
+    WHERE user_id = p_user_id;
+
+    IF user_coins < tile_price THEN
+        RETURN FALSE;
+    END IF;
+
+    BEGIN
+        -- Deduct coins
+        UPDATE player_stats
+        SET coins = coins - tile_price
+        WHERE user_id = p_user_id;
+
+        -- Unlock and record purchase
+        UPDATE world_tiles
+        SET locked = false,
+            purchase_price = tile_price,
+            purchased_at = CURRENT_TIMESTAMP
+        WHERE world_id = p_world_id
+        AND x_coord = p_x_coord
+        AND y_coord = p_y_coord;
+
+        RETURN TRUE;
+    EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RETURN FALSE;
+    END;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Users validation
 CREATE OR REPLACE FUNCTION validate_user(
   p_username VARCHAR,

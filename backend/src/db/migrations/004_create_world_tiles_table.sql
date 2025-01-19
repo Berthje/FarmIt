@@ -5,6 +5,12 @@ CREATE TABLE world_tiles (
   y_coord INTEGER NOT NULL,
   locked BOOLEAN NOT NULL DEFAULT TRUE,
   terrain_type terrain_type_enum DEFAULT 'grass',
+  purchase_price INTEGER,
+  purchased_at TIMESTAMP WITH TIME ZONE,
   CONSTRAINT unique_tile UNIQUE (world_id, x_coord, y_coord),
-  CONSTRAINT valid_world_tile CHECK (validate_world_tile(x_coord, y_coord))
+  CONSTRAINT valid_world_tile CHECK (validate_world_tile(x_coord, y_coord)),
+  CONSTRAINT valid_purchase CHECK (
+    (locked = TRUE AND purchase_price IS NULL AND purchased_at IS NULL) OR
+    (locked = FALSE AND purchase_price IS NOT NULL AND purchased_at IS NOT NULL)
+  )
 );
