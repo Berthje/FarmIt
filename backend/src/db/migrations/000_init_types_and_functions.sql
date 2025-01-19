@@ -2,15 +2,11 @@
 DROP TYPE IF EXISTS item_type_enum CASCADE;
 DROP TYPE IF EXISTS rarity_enum CASCADE;
 DROP TYPE IF EXISTS season_enum CASCADE;
-DROP TYPE IF EXISTS plot_type_enum CASCADE;
-DROP TYPE IF EXISTS structure_type_enum CASCADE;
 
 -- Create ENUM types
 CREATE TYPE item_type_enum AS ENUM ('crops', 'tools');
 CREATE TYPE rarity_enum AS ENUM ('common', 'uncommon', 'rare', 'epic', 'legendary');
 CREATE TYPE season_enum AS ENUM ('spring', 'summer', 'fall', 'winter');
-CREATE TYPE plot_type_enum AS ENUM ('locked', 'grass', 'farmland', 'tree', 'structure');
-CREATE TYPE structure_type_enum AS ENUM ('house', 'barn', 'silo', 'well', 'fence', 'path', 'decoration');
 
 -- Common validation functions
 CREATE OR REPLACE FUNCTION validate_item_exists(item_type item_type_enum, item_id integer)
