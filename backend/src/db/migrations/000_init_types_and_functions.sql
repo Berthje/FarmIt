@@ -27,6 +27,8 @@ CREATE OR REPLACE FUNCTION create_initial_world(p_user_id INTEGER)
 RETURNS VOID AS $$
 DECLARE
   new_world_id INTEGER;
+  random_value FLOAT;
+  terrain terrain_type_enum;
 BEGIN
   -- Create world entry
   INSERT INTO worlds (user_id) VALUES (p_user_id) RETURNING id INTO new_world_id;
