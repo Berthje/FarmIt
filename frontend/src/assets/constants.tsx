@@ -43,7 +43,9 @@ export const GAME_ASSETS = {
         UI: {
             SETTINGS: "/assets/icons/settings_icon.svg",
             CLOSE: "/assets/icons/close_icon.svg",
-            // Add more UI icons here
+            MASTER: "/assets/icons/volume_icon.svg",
+            MUSIC: "/assets/icons/music_icon.svg",
+            SOUND: "/assets/icons/sound_icon.svg",
         },
     },
 };

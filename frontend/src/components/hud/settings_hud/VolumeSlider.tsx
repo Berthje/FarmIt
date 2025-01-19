@@ -5,7 +5,7 @@ interface VolumeSliderProps {
     label: string;
     value: number;
     onChange: (value: number) => void;
-    icon: "music" | "sfx";
+    icon: "music" | "sfx" | "master";
 }
 
 export const VolumeSlider: React.FC<VolumeSliderProps> = ({
@@ -14,13 +14,23 @@ export const VolumeSlider: React.FC<VolumeSliderProps> = ({
     onChange,
     icon,
 }) => {
-    const steps = [0, 20, 40, 60, 80, 100];
+    const steps = [0, 25, 50, 75, 100];
 
     return (
         <div className="space-y-3 p-4 bg-green-900/50 rounded-xl border border-green-700/50">
             <div className="flex items-center justify-between text-yellow-400">
                 <div className="flex items-center gap-2">
-
+                    <img
+                        src={
+                            icon === "master"
+                                ? GAME_ASSETS.ICONS.UI.MASTER
+                                : icon === "music"
+                                  ? GAME_ASSETS.ICONS.UI.MUSIC
+                                  : GAME_ASSETS.ICONS.UI.SOUND
+                        }
+                        alt={icon}
+                        className="w-5 h-5"
+                    />
                     <span className="font-medium">{label}</span>
                 </div>
                 <span className="text-green-300 font-bold bg-green-800/80 px-2 py-0.5 rounded-md min-w-[3rem] text-center">

@@ -2,13 +2,23 @@ import React, { useState } from "react";
 import { GAME_ASSETS } from "../../../assets/constants";
 import { VolumeSlider } from "./VolumeSlider";
 
+type VolumeType = "master" | "music" | "sfx";
+
 interface SettingsModalProps {
     onClose: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
-    const [musicVolume, setMusicVolume] = useState(80);
-    const [sfxVolume, setSfxVolume] = useState(100);
+    const [volumes, setVolumes] = useState({
+        master: 100,
+        music: 80,
+        sfx: 100,
+    });
+
+    const handleVolumeChange = (type: VolumeType, value: number) => {
+        setVolumes((prev) => ({ ...prev, [type]: value }));
+        // Here you would also trigger actual volume changes in your audio system
+    };
 
     return (
         <div className="fixed inset-0 z-50" onClick={onClose}>
@@ -36,15 +46,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
 
                 <div className="space-y-6">
                     <VolumeSlider
+                        label="Master Volume"
+                        value={volumes.master}
+                        onChange={(value) =>
+                            handleVolumeChange("master", value)
+                        }
+                        icon="master"
+                    />
+                    <VolumeSlider
                         label="Music Volume"
-                        value={musicVolume}
-                        onChange={setMusicVolume}
+                        value={volumes.music}
+                        onChange={(value) => handleVolumeChange("music", value)}
                         icon="music"
                     />
                     <VolumeSlider
                         label="Sound Effects"
-                        value={sfxVolume}
-                        onChange={setSfxVolume}
+                        value={volumes.sfx}
+                        onChange={(value) => handleVolumeChange("sfx", value)}
                         icon="sfx"
                     />
                 </div>
