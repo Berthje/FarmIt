@@ -11,13 +11,13 @@ interface SettingsModalProps {
 export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
     const [volumes, setVolumes] = useState({
         master: 100,
-        music: 80,
-        sfx: 100,
+        music: 75,
+        sfx: 25,
     });
 
     const handleVolumeChange = (type: VolumeType, value: number) => {
         setVolumes((prev) => ({ ...prev, [type]: value }));
-        // Here you would also trigger actual volume changes in your audio system
+        // Here ytrigger actual volume changes in your audio system
     };
 
     return (
