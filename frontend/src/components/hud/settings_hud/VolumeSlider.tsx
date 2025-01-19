@@ -26,14 +26,14 @@ export const VolumeSlider: React.FC<VolumeSliderProps> = ({
                                 ? GAME_ASSETS.ICONS.UI.MASTER
                                 : icon === "music"
                                   ? GAME_ASSETS.ICONS.UI.MUSIC
-                                  : GAME_ASSETS.ICONS.UI.SOUND
+                                  : GAME_ASSETS.ICONS.UI.SFX
                         }
                         alt={icon}
                         className="w-5 h-5"
                     />
-                    <span className="font-medium">{label}</span>
+                    <span className="font-medium text-white">{label}</span>
                 </div>
-                <span className="text-green-300 font-bold bg-green-800/80 px-2 py-0.5 rounded-md min-w-[3rem] text-center">
+                <span className="text-green-200 font-bold bg-green-800/80 px-2 py-0.5 rounded-md min-w-[3rem] text-center">
                     {value}%
                 </span>
             </div>
