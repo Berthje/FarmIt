@@ -133,6 +133,37 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Helper function to check if tile is adjacent to an unlocked tile
+CREATE OR REPLACE FUNCTION is_adjacent_to_unlocked(
+    p_world_id INTEGER,
+    p_x_coord INTEGER,
+    p_y_coord INTEGER
+) RETURNS BOOLEAN AS $$
+DECLARE
+    has_adjacent BOOLEAN;
+BEGIN
+    SELECT EXISTS(
+        SELECT 1
+        FROM world_tiles
+        WHERE world_id = p_world_id
+        AND locked = false
+        AND (
+            -- Check all 8 adjacent tiles
+            (x_coord = p_x_coord - 1 AND y_coord = p_y_coord) OR     -- Left
+            (x_coord = p_x_coord + 1 AND y_coord = p_y_coord) OR     -- Right
+            (x_coord = p_x_coord AND y_coord = p_y_coord - 1) OR     -- Up
+            (x_coord = p_x_coord AND y_coord = p_y_coord + 1) OR     -- Down
+            (x_coord = p_x_coord - 1 AND y_coord = p_y_coord - 1) OR -- Top Left
+            (x_coord = p_x_coord + 1 AND y_coord = p_y_coord - 1) OR -- Top Right
+            (x_coord = p_x_coord - 1 AND y_coord = p_y_coord + 1) OR -- Bottom Left
+            (x_coord = p_x_coord + 1 AND y_coord = p_y_coord + 1)    -- Bottom Right
+        )
+    ) INTO has_adjacent;
+
+    RETURN has_adjacent;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Function to unlock tile
 CREATE OR REPLACE FUNCTION unlock_tile(
     p_world_id INTEGER,
@@ -145,6 +176,10 @@ DECLARE
     tile_price INTEGER;
     user_coins INTEGER;
 BEGIN
+    IF NOT is_adjacent_to_unlocked(p_world_id, p_x_coord, p_y_coord) THEN
+        RETURN FALSE;
+    END IF;
+
     tile_price := calculate_tile_price(p_world_id);
 
     SELECT coins INTO user_coins
