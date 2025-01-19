@@ -2,13 +2,13 @@
 DROP TYPE IF EXISTS item_type_enum CASCADE;
 DROP TYPE IF EXISTS rarity_enum CASCADE;
 DROP TYPE IF EXISTS season_enum CASCADE;
-DROP TYPE IF EXISTS plant_category_enum CASCADE;
+DROP TYPE IF EXISTS plantable_category_enum CASCADE;
 
 -- Create ENUM types
 CREATE TYPE item_type_enum AS ENUM ('crops', 'tools');
 CREATE TYPE rarity_enum AS ENUM ('common', 'uncommon', 'rare', 'epic', 'legendary');
 CREATE TYPE season_enum AS ENUM ('spring', 'summer', 'fall', 'winter');
-CREATE TYPE plant_category_enum AS ENUM (
+CREATE TYPE plantable_category_enum AS ENUM (
     'vegetable',
     'grain'
     -- Future: 'tree', 'fruit', 'flower', 'magical'

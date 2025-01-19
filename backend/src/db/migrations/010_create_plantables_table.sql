@@ -1,7 +1,7 @@
 CREATE TABLE plantables (
     id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
-    category plant_category_enum NOT NULL,
+    category plantable_category_enum NOT NULL,
     growth_time INTEGER NOT NULL,
     season season_enum,
     rarity rarity_enum DEFAULT 'common',

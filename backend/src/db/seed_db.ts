@@ -58,12 +58,39 @@ async function seedPlantables() {
   `);
 }
 
+async function seedPlantedCrops() {
+  await query(`
+    INSERT INTO planted_crops
+    (tile_id, plantable_id, planted_at, last_watered_at, growth_stage, health, properties)
+    VALUES
+    -- Carrot patch (early stage)
+    (1, 1, NOW() - INTERVAL '2 days', NOW() - INTERVAL '12 hours', 1, 100,
+    '{"type": "vegetable", "needs_water": false}'::jsonb),
+
+    -- Wheat field (mid growth)
+    (2, 2, NOW() - INTERVAL '4 days', NOW() - INTERVAL '1 day', 2, 90,
+    '{"type": "grain", "needs_water": true}'::jsonb),
+
+    -- Apple tree (mature)
+    (3, 3, NOW() - INTERVAL '10 days', NOW() - INTERVAL '2 days', 4, 95,
+    '{"type": "tree", "fruit_count": 5}'::jsonb),
+
+    -- Tomato plant (ready for harvest)
+    (4, 4, NOW() - INTERVAL '6 days', NOW() - INTERVAL '8 hours', 4, 100,
+    '{"type": "vegetable", "ready_to_harvest": true}'::jsonb),
+
+    -- Potato plant (needs care)
+    (5, 5, NOW() - INTERVAL '3 days', NOW() - INTERVAL '2 days', 1, 50,
+    '{"type": "vegetable", "needs_water": true}'::jsonb)
+  `);
+}
+
 async function seedInventory() {
   await query(`
     INSERT INTO inventory (user_id, item_type, item_id, quantity)
     SELECT
       u.id,
-      'plantables',
+      'crops',
       p.id,
       10
     FROM users u
@@ -190,6 +217,7 @@ export async function seedDatabase() {
   await seedPlayerStats();
   await seedTools();
   await seedPlantables();
+  await seedPlantedCrops();
   await seedInventory();
   await seedMarketListings();
   await seedAuctions();
