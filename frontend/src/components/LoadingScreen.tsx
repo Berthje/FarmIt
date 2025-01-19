@@ -68,8 +68,7 @@ export const LoadingScreen = ({ children }: { children: React.ReactNode }) => {
               </div>
             )}
           </div>
-
-          {/* Decorative Gradients */}
+          
           <div className="fixed bottom-0 w-full h-32 bg-gradient-to-t from-green-900 to-transparent" />
           <div className="fixed top-0 w-full h-32 bg-gradient-to-b from-green-900 to-transparent" />
         </div>
