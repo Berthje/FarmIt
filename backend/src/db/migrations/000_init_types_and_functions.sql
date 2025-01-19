@@ -2,11 +2,17 @@
 DROP TYPE IF EXISTS item_type_enum CASCADE;
 DROP TYPE IF EXISTS rarity_enum CASCADE;
 DROP TYPE IF EXISTS season_enum CASCADE;
+DROP TYPE IF EXISTS plant_category_enum CASCADE;
 
 -- Create ENUM types
 CREATE TYPE item_type_enum AS ENUM ('crops', 'tools');
 CREATE TYPE rarity_enum AS ENUM ('common', 'uncommon', 'rare', 'epic', 'legendary');
 CREATE TYPE season_enum AS ENUM ('spring', 'summer', 'fall', 'winter');
+CREATE TYPE plant_category_enum AS ENUM (
+    'vegetable',
+    'grain'
+    -- Future: 'tree', 'fruit', 'flower', 'magical'
+);
 
 -- Common validation functions
 CREATE OR REPLACE FUNCTION validate_item_exists(item_type item_type_enum, item_id integer)
@@ -191,5 +197,33 @@ BEGIN
   END IF;
 
   RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Plantable validation
+CREATE OR REPLACE FUNCTION validate_plant(
+    p_growth_time INTEGER,
+    p_base_price INTEGER,
+    p_harvest_min INTEGER,
+    p_harvest_max INTEGER
+) RETURNS BOOLEAN AS $$
+BEGIN
+    IF p_growth_time <= 0 THEN
+        RAISE EXCEPTION 'Growth time must be positive';
+    END IF;
+
+    IF p_base_price <= 0 THEN
+        RAISE EXCEPTION 'Base price must be positive';
+    END IF;
+
+    IF p_harvest_min < 1 THEN
+        RAISE EXCEPTION 'Minimum harvest must be at least 1';
+    END IF;
+
+    IF p_harvest_max < p_harvest_min THEN
+        RAISE EXCEPTION 'Maximum harvest must be greater than or equal to minimum harvest';
+    END IF;
+
+    RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql;

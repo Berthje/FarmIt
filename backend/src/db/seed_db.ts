@@ -42,18 +42,18 @@ async function seedPlantables() {
       harvest_max,
       properties
     ) VALUES
-    ('Beetroot', 'vegetable', 120, 'fall', 15, 1, 2, '{"soil_quality": "any", "water_needs": "medium"}'),
-    ('Carrot', 'vegetable', 100, 'spring', 12, 1, 3, '{"soil_depth": 2, "water_needs": "medium"}'),
-    ('Garlic', 'vegetable', 90, 'spring', 18, 1, 1, '{"pest_resistant": true, "water_needs": "low"}'),
-    ('Gingeroot', 'vegetable', 150, 'summer', 25, 1, 2, '{"soil_depth": 3, "water_needs": "high"}'),
-    ('Kohlrabi', 'vegetable', 110, 'fall', 20, 1, 2, '{"cold_resistant": true, "water_needs": "medium"}'),
-    ('Onion', 'vegetable', 100, 'spring', 10, 1, 2, '{"soil_quality": "any", "water_needs": "medium"}'),
-    ('Parsnip', 'vegetable', 95, 'fall', 15, 1, 2, '{"soil_depth": 2, "water_needs": "medium"}'),
-    ('Potato', 'vegetable', 140, 'spring', 20, 2, 4, '{"soil_depth": 3, "water_needs": "medium"}'),
-    ('Purple Yam', 'vegetable', 160, 'summer', 30, 1, 2, '{"soil_depth": 3, "water_needs": "high"}'),
-    ('Radish', 'vegetable', 70, 'spring', 8, 1, 3, '{"soil_depth": 1, "water_needs": "medium"}'),
-    ('Sweet Potato', 'vegetable', 150, 'summer', 25, 2, 3, '{"soil_depth": 3, "water_needs": "medium"}'),
-    ('Turnip', 'vegetable', 85, 'fall', 12, 1, 2, '{"soil_depth": 2, "water_needs": "medium"}')
+    ('Beetroot', 'vegetable', 120, 'fall', 15, 1, 2, '{"water_needs": "medium"}'),
+    ('Carrot', 'vegetable', 100, 'spring', 12, 1, 3, '{"water_needs": "medium"}'),
+    ('Garlic', 'vegetable', 90, 'spring', 18, 1, 1, '{"water_needs": "low"}'),
+    ('Gingeroot', 'vegetable', 150, 'summer', 25, 1, 2, '{"water_needs": "high"}'),
+    ('Kohlrabi', 'vegetable', 110, 'fall', 20, 1, 2, '{"water_needs": "medium"}'),
+    ('Onion', 'vegetable', 100, 'spring', 10, 1, 2, '{"water_needs": "medium"}'),
+    ('Parsnip', 'vegetable', 95, 'fall', 15, 1, 2, '{"water_needs": "medium"}'),
+    ('Potato', 'vegetable', 140, 'spring', 20, 2, 4, '{"water_needs": "medium"}'),
+    ('Purple Yam', 'vegetable', 160, 'summer', 30, 1, 2, '{"water_needs": "high"}'),
+    ('Radish', 'vegetable', 70, 'spring', 8, 1, 3, '{"water_needs": "medium"}'),
+    ('Sweet Potato', 'vegetable', 150, 'summer', 25, 2, 3, '{"water_needs": "medium"}'),
+    ('Turnip', 'vegetable', 85, 'fall', 12, 1, 2, '{"water_needs": "medium"}')
     ON CONFLICT DO NOTHING
   `);
 }
