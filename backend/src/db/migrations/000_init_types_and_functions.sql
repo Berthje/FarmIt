@@ -69,14 +69,46 @@ BEGIN
         END;
       END IF;
 
-      INSERT INTO world_tiles (
-        world_id, x_coord, y_coord, locked, terrain_type
-      )
-      VALUES (
-        new_world_id, x, y,
-        NOT (x BETWEEN 47 AND 52 AND y BETWEEN 47 AND 52),
-        terrain
-      );
+      INSERT INTO
+    world_tiles (
+        world_id,
+        x_coord,
+        y_coord,
+        locked,
+        terrain_type,
+        purchase_price
+    )
+VALUES (
+        new_world_id,
+        x,
+        y,
+        NOT (
+            x BETWEEN 47 AND 52
+            AND y BETWEEN 47 AND 52
+        ),
+        terrain,
+        CASE
+            WHEN x BETWEEN 47 AND 52
+            AND y BETWEEN 47 AND 52  THEN 0 -- Initial area is free
+            ELSE (
+                CASE -- Base prices for different zones
+                    WHEN x BETWEEN 42 AND 57
+                    AND y BETWEEN 42 AND 57  THEN 50 -- First tier
+                    WHEN x BETWEEN 37 AND 62
+                    AND y BETWEEN 37 AND 62  THEN 150 -- Second tier
+                    WHEN x BETWEEN 32 AND 67
+                    AND y BETWEEN 32 AND 67  THEN 300 -- Third tier
+                    WHEN x BETWEEN 27 AND 72
+                    AND y BETWEEN 27 AND 72  THEN 600 -- Fourth tier
+                    WHEN x BETWEEN 22 AND 77
+                    AND y BETWEEN 22 AND 77  THEN 1200 -- Fifth tier
+                    WHEN x BETWEEN 17 AND 82
+                    AND y BETWEEN 17 AND 82  THEN 2400 -- Sixth tier
+                    ELSE 4000 -- Outer tier
+                END
+            )
+        END
+    );
     END LOOP;
   END LOOP;
 END;
@@ -105,6 +137,112 @@ BEGIN
     RAISE EXCEPTION 'Tile coordinates must be non-negative';
   END IF;
   RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+-- World Tile Calculation
+CREATE OR REPLACE FUNCTION calculate_tile_price(p_world_id INTEGER)
+RETURNS INTEGER AS $$
+DECLARE
+    owned_tiles INTEGER;
+BEGIN
+    SELECT COUNT(*)
+    INTO owned_tiles
+    FROM world_tiles
+    WHERE world_id = p_world_id
+    AND locked = false;
+
+    RETURN CASE
+        WHEN owned_tiles < 36 THEN 0           -- Initial 6x6 grid (free)
+        WHEN owned_tiles < 250 THEN 50         -- First tier
+        WHEN owned_tiles < 500 THEN 150        -- Second tier
+        WHEN owned_tiles < 1000 THEN 300       -- Third tier
+        WHEN owned_tiles < 2500 THEN 600       -- Fourth tier
+        WHEN owned_tiles < 5000 THEN 1200      -- Fifth tier
+        WHEN owned_tiles < 7500 THEN 2400      -- Sixth tier
+        ELSE 4000                              -- Final tier
+    END;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Helper function to check if tile is adjacent to an unlocked tile
+CREATE OR REPLACE FUNCTION is_adjacent_to_unlocked(
+    p_world_id INTEGER,
+    p_x_coord INTEGER,
+    p_y_coord INTEGER
+) RETURNS BOOLEAN AS $$
+DECLARE
+    has_adjacent BOOLEAN;
+BEGIN
+    SELECT EXISTS(
+        SELECT 1
+        FROM world_tiles
+        WHERE world_id = p_world_id
+        AND locked = false
+        AND (
+            -- Check all 8 adjacent tiles
+            (x_coord = p_x_coord - 1 AND y_coord = p_y_coord) OR     -- Left
+            (x_coord = p_x_coord + 1 AND y_coord = p_y_coord) OR     -- Right
+            (x_coord = p_x_coord AND y_coord = p_y_coord - 1) OR     -- Up
+            (x_coord = p_x_coord AND y_coord = p_y_coord + 1) OR     -- Down
+            (x_coord = p_x_coord - 1 AND y_coord = p_y_coord - 1) OR -- Top Left
+            (x_coord = p_x_coord + 1 AND y_coord = p_y_coord - 1) OR -- Top Right
+            (x_coord = p_x_coord - 1 AND y_coord = p_y_coord + 1) OR -- Bottom Left
+            (x_coord = p_x_coord + 1 AND y_coord = p_y_coord + 1)    -- Bottom Right
+        )
+    ) INTO has_adjacent;
+
+    RETURN has_adjacent;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to unlock tile
+CREATE OR REPLACE FUNCTION unlock_tile(
+    p_world_id INTEGER,
+    p_x_coord INTEGER,
+    p_y_coord INTEGER,
+    p_user_id INTEGER
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    tile_price INTEGER;
+    user_coins INTEGER;
+BEGIN
+    IF NOT is_adjacent_to_unlocked(p_world_id, p_x_coord, p_y_coord) THEN
+        RETURN FALSE;
+    END IF;
+
+    tile_price := calculate_tile_price(p_world_id);
+
+    SELECT coins INTO user_coins
+    FROM player_stats
+    WHERE user_id = p_user_id;
+
+    IF user_coins < tile_price THEN
+        RETURN FALSE;
+    END IF;
+
+    BEGIN
+        -- Deduct coins
+        UPDATE player_stats
+        SET coins = coins - tile_price
+        WHERE user_id = p_user_id;
+
+        -- Unlock and record purchase
+        UPDATE world_tiles
+        SET locked = false,
+            purchase_price = tile_price,
+            purchased_at = CURRENT_TIMESTAMP
+        WHERE world_id = p_world_id
+        AND x_coord = p_x_coord
+        AND y_coord = p_y_coord;
+
+        RETURN TRUE;
+    EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            RETURN FALSE;
+    END;
 END;
 $$ LANGUAGE plpgsql;
 
