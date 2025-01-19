@@ -90,7 +90,7 @@ async function seedInventory() {
     INSERT INTO inventory (user_id, item_type, item_id, quantity)
     SELECT
       u.id,
-      'crops',
+      'plantable'::item_type_enum,
       p.id,
       10
     FROM users u
@@ -105,7 +105,7 @@ async function seedMarketListings() {
     INSERT INTO market_listings (seller_id, item_type, item_id, quantity, price_per_unit)
     SELECT
       u.id,
-      'plantables',
+      'plantable'::item_type_enum,
       p.id,
       5,
       p.base_price * 2
@@ -154,7 +154,7 @@ async function seedAuctions() {
     )
     SELECT
       seller_id,
-      'plantables',
+      'plantable'::item_type_enum,
       plantable_id,
       base_price,              -- Starting bid
       base_price,              -- Min bid
