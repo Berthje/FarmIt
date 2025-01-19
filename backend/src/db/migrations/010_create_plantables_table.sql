@@ -3,7 +3,7 @@ CREATE TABLE plantables (
     name VARCHAR(50) NOT NULL,
     category plantable_category_enum NOT NULL,
     growth_time INTEGER NOT NULL,
-    season season_enum,
+    seasons season_enum[],
     rarity rarity_enum DEFAULT 'common',
     base_price INTEGER NOT NULL,
     harvest_min INTEGER NOT NULL DEFAULT 1,

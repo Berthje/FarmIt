@@ -1,7 +1,7 @@
 import { query } from "./db.ts";
 
 async function seedUsers() {
-  await query(`
+	await query(`
     INSERT INTO users (username, email, password_hash) VALUES
     ('farmer_john', 'john@farm.com', 'hash1'),
     ('crop_master', 'master@farm.com', 'hash2'),
@@ -12,7 +12,7 @@ async function seedUsers() {
 }
 
 async function seedPlayerStats() {
-  await query(`
+	await query(`
     INSERT INTO player_stats (user_id, level, experience, coins)
     SELECT id, 1, 0, 1000 FROM users
     ON CONFLICT DO NOTHING
@@ -20,7 +20,7 @@ async function seedPlayerStats() {
 }
 
 async function seedTools() {
-  await query(`
+	await query(`
     INSERT INTO tools (name, durability, rarity, base_price) VALUES
     ('Basic Hoe', 100, 'common', 50),
     ('Watering Can', 150, 'common', 75),
@@ -31,35 +31,35 @@ async function seedTools() {
 }
 
 async function seedPlantables() {
-  await query(`
+	await query(`
     INSERT INTO plantables (
       name,
       category,
       growth_time,
-      season,
+      seasons,
       base_price,
       harvest_min,
       harvest_max,
       properties
     ) VALUES
-    ('Beetroot', 'vegetable', 120, 'fall', 15, 1, 2, '{"water_needs": "medium"}'),
-    ('Carrot', 'vegetable', 100, 'spring', 12, 1, 3, '{"water_needs": "medium"}'),
-    ('Garlic', 'vegetable', 90, 'spring', 18, 1, 1, '{"water_needs": "low"}'),
-    ('Gingeroot', 'vegetable', 150, 'summer', 25, 1, 2, '{"water_needs": "high"}'),
-    ('Kohlrabi', 'vegetable', 110, 'fall', 20, 1, 2, '{"water_needs": "medium"}'),
-    ('Onion', 'vegetable', 100, 'spring', 10, 1, 2, '{"water_needs": "medium"}'),
-    ('Parsnip', 'vegetable', 95, 'fall', 15, 1, 2, '{"water_needs": "medium"}'),
-    ('Potato', 'vegetable', 140, 'spring', 20, 2, 4, '{"water_needs": "medium"}'),
-    ('Purple Yam', 'vegetable', 160, 'summer', 30, 1, 2, '{"water_needs": "high"}'),
-    ('Radish', 'vegetable', 70, 'spring', 8, 1, 3, '{"water_needs": "medium"}'),
-    ('Sweet Potato', 'vegetable', 150, 'summer', 25, 2, 3, '{"water_needs": "medium"}'),
-    ('Turnip', 'vegetable', 85, 'fall', 12, 1, 2, '{"water_needs": "medium"}')
+    ('Beetroot', 'vegetable', 120, ARRAY['summer','fall']::season_enum[], 15, 1, 2, '{"water_needs": "medium"}'),
+    ('Carrot', 'vegetable', 100, ARRAY['spring','fall']::season_enum[], 12, 1, 3, '{"water_needs": "medium"}'),
+    ('Garlic', 'vegetable', 90, ARRAY['spring']::season_enum[], 18, 1, 1, '{"water_needs": "low"}'),
+    ('Gingeroot', 'vegetable', 150, ARRAY['summer']::season_enum[], 25, 1, 2, '{"water_needs": "high"}'),
+    ('Kohlrabi', 'vegetable', 110, ARRAY['spring','fall']::season_enum[], 20, 1, 2, '{"water_needs": "medium"}'),
+    ('Onion', 'vegetable', 100, ARRAY['spring','summer']::season_enum[], 10, 1, 2, '{"water_needs": "medium"}'),
+    ('Parsnip', 'vegetable', 95, ARRAY['fall']::season_enum[], 15, 1, 2, '{"water_needs": "medium"}'),
+    ('Potato', 'vegetable', 140, ARRAY['spring','summer']::season_enum[], 20, 2, 4, '{"water_needs": "medium"}'),
+    ('Purple Yam', 'vegetable', 160, ARRAY['summer']::season_enum[], 30, 1, 2, '{"water_needs": "high"}'),
+    ('Radish', 'vegetable', 70, ARRAY['spring','summer','fall']::season_enum[], 8, 1, 3, '{"water_needs": "medium"}'),
+    ('Sweet Potato', 'vegetable', 150, ARRAY['summer','fall']::season_enum[], 25, 2, 3, '{"water_needs": "medium"}'),
+    ('Turnip', 'vegetable', 85, ARRAY['spring','fall']::season_enum[], 12, 1, 2, '{"water_needs": "medium"}')
     ON CONFLICT DO NOTHING
   `);
 }
 
 async function seedPlantedCrops() {
-  await query(`
+	await query(`
     INSERT INTO planted_crops
     (tile_id, plantable_id, planted_at, last_watered_at, growth_stage, health, properties)
     VALUES
@@ -86,7 +86,7 @@ async function seedPlantedCrops() {
 }
 
 async function seedInventory() {
-  await query(`
+	await query(`
     INSERT INTO inventory (user_id, item_type, item_id, quantity)
     SELECT
       u.id,
@@ -101,7 +101,7 @@ async function seedInventory() {
 }
 
 async function seedMarketListings() {
-  await query(`
+	await query(`
     INSERT INTO market_listings (seller_id, item_type, item_id, quantity, price_per_unit)
     SELECT
       u.id,
@@ -118,7 +118,7 @@ async function seedMarketListings() {
 }
 
 async function seedAuctions() {
-  await query(`
+	await query(`
     WITH durations AS (
       SELECT unnest(ARRAY[
         INTERVAL '8 hours',
@@ -168,7 +168,7 @@ async function seedAuctions() {
 }
 
 async function seedAuctionBids() {
-  await query(`
+	await query(`
     WITH RECURSIVE bid_sequence AS (
       SELECT 1 as seq
       UNION ALL
@@ -196,7 +196,7 @@ async function seedAuctionBids() {
     ON CONFLICT DO NOTHING
   `);
 
-  await query(`
+	await query(`
     UPDATE auctions a
     SET current_bid = (
       SELECT MAX(bid_amount)
@@ -211,17 +211,17 @@ async function seedAuctionBids() {
 }
 
 export async function seedDatabase() {
-  console.log("Seeding database...");
+	console.log("Seeding database...");
 
-  await seedUsers();
-  await seedPlayerStats();
-  await seedTools();
-  await seedPlantables();
-  await seedPlantedCrops();
-  await seedInventory();
-  await seedMarketListings();
-  await seedAuctions();
-  await seedAuctionBids();
+	await seedUsers();
+	await seedPlayerStats();
+	await seedTools();
+	await seedPlantables();
+	await seedPlantedCrops();
+	await seedInventory();
+	await seedMarketListings();
+	await seedAuctions();
+	await seedAuctionBids();
 
-  console.log("Database seeded with initial data!");
+	console.log("Database seeded with initial data!");
 }
