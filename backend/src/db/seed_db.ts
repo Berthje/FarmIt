@@ -42,20 +42,6 @@ async function seedCrops() {
   `);
 }
 
-async function seedFarmPlots() {
-  await query(`
-    INSERT INTO farm_plots (user_id, x_coord, y_coord)
-    SELECT
-      u.id,
-      x.coord,
-      y.coord
-    FROM users u
-    CROSS JOIN generate_series(0, 3) AS x(coord)
-    CROSS JOIN generate_series(0, 3) AS y(coord)
-    ON CONFLICT DO NOTHING
-  `);
-}
-
 async function seedInventory() {
   await query(`
     INSERT INTO inventory (user_id, item_type, item_id, quantity)
@@ -188,7 +174,8 @@ export async function seedDatabase() {
   await seedPlayerStats();
   await seedTools();
   await seedCrops();
-  await seedFarmPlots();
+  await seedWorlds();
+  await seedWorldTiles();
   await seedInventory();
   await seedMarketListings();
   await seedAuctions();

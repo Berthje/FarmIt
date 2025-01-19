@@ -1,8 +1,10 @@
--- Farm plots indexes
-CREATE INDEX idx_farm_plots_user_id ON farm_plots(user_id);
-CREATE INDEX idx_farm_plots_crop_id ON farm_plots(crop_id);
-CREATE INDEX idx_farm_plots_coords ON farm_plots(x_coord, y_coord);
-CREATE INDEX idx_farm_plots_planted ON farm_plots(planted_at);
+-- Worlds indexes
+CREATE INDEX idx_worlds_user_id ON worlds(user_id);
+CREATE INDEX idx_worlds_created_at ON worlds(created_at);
+
+-- World tiles indexes
+CREATE INDEX idx_world_tiles_world_id ON world_tiles(world_id);
+CREATE INDEX idx_world_tiles_coords ON world_tiles(world_id, x_coord, y_coord);
 
 -- Tools indexes
 CREATE INDEX idx_tools_rarity ON tools(rarity);

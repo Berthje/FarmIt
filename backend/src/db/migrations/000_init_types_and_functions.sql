@@ -19,6 +19,32 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- World validation
+CREATE OR REPLACE FUNCTION validate_world(
+  p_dimension_x INTEGER,
+  p_dimension_y INTEGER
+) RETURNS BOOLEAN AS $$
+BEGIN
+  IF p_dimension_x <= 0 OR p_dimension_y <= 0 THEN
+    RAISE EXCEPTION 'World dimensions must be positive';
+  END IF;
+  RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+/* Validate world tiles */
+CREATE OR REPLACE FUNCTION validate_world_tile(
+  p_x_coord INTEGER,
+  p_y_coord INTEGER
+) RETURNS BOOLEAN AS $$
+BEGIN
+  IF p_x_coord < 0 OR p_y_coord < 0 THEN
+    RAISE EXCEPTION 'Tile coordinates must be non-negative';
+  END IF;
+  RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Users validation
 CREATE OR REPLACE FUNCTION validate_user(
   p_username VARCHAR,
@@ -86,23 +112,6 @@ BEGIN
   END IF;
   IF p_base_price <= 0 THEN
     RAISE EXCEPTION 'Tool base price must be positive';
-  END IF;
-  RETURN TRUE;
-END;
-$$ LANGUAGE plpgsql;
-
--- Farm plot validation
-CREATE OR REPLACE FUNCTION validate_farm_plot(
-  p_x_coord INTEGER,
-  p_y_coord INTEGER,
-  p_growth_stage INTEGER
-) RETURNS BOOLEAN AS $$
-BEGIN
-  IF p_x_coord < 0 OR p_x_coord >= 100 OR p_y_coord < 0 OR p_y_coord >= 100 THEN
-    RAISE EXCEPTION 'Invalid coordinates (must be 0-99)';
-  END IF;
-  IF p_growth_stage < 0 THEN
-    RAISE EXCEPTION 'Growth stage cannot be negative';
   END IF;
   RETURN TRUE;
 END;
