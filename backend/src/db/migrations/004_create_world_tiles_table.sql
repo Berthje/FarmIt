@@ -8,9 +8,5 @@ CREATE TABLE world_tiles (
   purchase_price INTEGER,
   purchased_at TIMESTAMP WITH TIME ZONE,
   CONSTRAINT unique_tile UNIQUE (world_id, x_coord, y_coord),
-  CONSTRAINT valid_world_tile CHECK (validate_world_tile(x_coord, y_coord)),
-  CONSTRAINT valid_purchase CHECK (
-    (locked = TRUE AND purchase_price IS NULL AND purchased_at IS NULL) OR
-    (locked = FALSE AND purchase_price IS NOT NULL AND purchased_at IS NOT NULL)
-  )
+  CONSTRAINT valid_world_tile CHECK (validate_world_tile(x_coord, y_coord))
 );

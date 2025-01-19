@@ -69,14 +69,46 @@ BEGIN
         END;
       END IF;
 
-      INSERT INTO world_tiles (
-        world_id, x_coord, y_coord, locked, terrain_type
-      )
-      VALUES (
-        new_world_id, x, y,
-        NOT (x BETWEEN 47 AND 52 AND y BETWEEN 47 AND 52),
-        terrain
-      );
+      INSERT INTO
+    world_tiles (
+        world_id,
+        x_coord,
+        y_coord,
+        locked,
+        terrain_type,
+        purchase_price
+    )
+VALUES (
+        new_world_id,
+        x,
+        y,
+        NOT (
+            x BETWEEN 47 AND 52
+            AND y BETWEEN 47 AND 52
+        ),
+        terrain,
+        CASE
+            WHEN x BETWEEN 47 AND 52
+            AND y BETWEEN 47 AND 52  THEN 0 -- Initial area is free
+            ELSE (
+                CASE -- Base prices for different zones
+                    WHEN x BETWEEN 42 AND 57
+                    AND y BETWEEN 42 AND 57  THEN 50 -- First tier
+                    WHEN x BETWEEN 37 AND 62
+                    AND y BETWEEN 37 AND 62  THEN 150 -- Second tier
+                    WHEN x BETWEEN 32 AND 67
+                    AND y BETWEEN 32 AND 67  THEN 300 -- Third tier
+                    WHEN x BETWEEN 27 AND 72
+                    AND y BETWEEN 27 AND 72  THEN 600 -- Fourth tier
+                    WHEN x BETWEEN 22 AND 77
+                    AND y BETWEEN 22 AND 77  THEN 1200 -- Fifth tier
+                    WHEN x BETWEEN 17 AND 82
+                    AND y BETWEEN 17 AND 82  THEN 2400 -- Sixth tier
+                    ELSE 4000 -- Outer tier
+                END
+            )
+        END
+    );
     END LOOP;
   END LOOP;
 END;
@@ -128,7 +160,7 @@ BEGIN
         WHEN owned_tiles < 2500 THEN 600       -- Fourth tier
         WHEN owned_tiles < 5000 THEN 1200      -- Fifth tier
         WHEN owned_tiles < 7500 THEN 2400      -- Sixth tier
-        ELSE 5000                              -- Final tier
+        ELSE 4000                              -- Final tier
     END;
 END;
 $$ LANGUAGE plpgsql;
