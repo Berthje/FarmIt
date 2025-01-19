@@ -174,8 +174,6 @@ export async function seedDatabase() {
   await seedPlayerStats();
   await seedTools();
   await seedCrops();
-  await seedWorlds();
-  await seedWorldTiles();
   await seedInventory();
   await seedMarketListings();
   await seedAuctions();

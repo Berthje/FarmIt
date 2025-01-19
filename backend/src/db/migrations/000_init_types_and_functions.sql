@@ -19,6 +19,31 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION create_initial_world(p_user_id INTEGER)
+RETURNS VOID AS $$
+DECLARE
+  new_world_id INTEGER;
+BEGIN
+  -- 1) Create a world entry
+  INSERT INTO worlds (user_id)
+  VALUES (p_user_id)
+  RETURNING id INTO new_world_id;
+
+  -- 2) Fill the 100x100 grid, unlocking only the first 10x10.
+  FOR x IN 0..99 LOOP
+  FOR y IN 0..99 LOOP
+    INSERT INTO world_tiles (world_id, x_coord, y_coord, locked)
+    VALUES (
+      new_world_id,
+      x,
+      y,
+      NOT (x BETWEEN 45 AND 54 AND y BETWEEN 45 AND 54)  -- unlock 10x10 in the middle
+    );
+  END LOOP;
+END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
 -- World validation
 CREATE OR REPLACE FUNCTION validate_world(
   p_dimension_x INTEGER,
