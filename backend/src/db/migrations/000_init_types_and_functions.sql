@@ -29,32 +29,54 @@ DECLARE
   new_world_id INTEGER;
   random_value FLOAT;
   terrain terrain_type_enum;
+  target_obstacles INTEGER;
+  obstacle_count INTEGER := 0;
+  starting_area_tiles terrain_type_enum[36];
+  i INTEGER;
 BEGIN
   -- Create world entry
   INSERT INTO worlds (user_id) VALUES (p_user_id) RETURNING id INTO new_world_id;
 
-  -- Fill 100x100 grid, only middle 6x6 unlocked
+  -- Determine target number of obstacles (3-7)
+  target_obstacles := 3 + floor(random() * 5)::INTEGER;
+
+  -- Initialize starting area with grass
+  FOR i IN 0..35 LOOP
+    starting_area_tiles[i] := 'grass'::terrain_type_enum;
+  END LOOP;
+
+  -- Add exactly target_obstacles number of obstacles
+  WHILE obstacle_count < target_obstacles LOOP
+    i := floor(random() * 36)::INTEGER;
+    IF starting_area_tiles[i] = 'grass' THEN
+      starting_area_tiles[i] := 'tree_sticks'::terrain_type_enum;
+      obstacle_count := obstacle_count + 1;
+    END IF;
+  END LOOP;
+
+  -- Fill 100x100 grid
   FOR x IN 0..99 LOOP
     FOR y IN 0..99 LOOP
-      random_value := random();
-      terrain := CASE
-        WHEN random_value < 0.65 THEN 'grass'::terrain_type_enum -- 65% chance
-        WHEN random_value < 0.80 THEN 'tree_sticks'::terrain_type_enum -- 15% chance
-        WHEN random_value < 0.925 THEN 'tree_residue'::terrain_type_enum -- 12.5% chance
-        ELSE 'stone'::terrain_type_enum -- 7.5% chance
-      END;
+      IF (x BETWEEN 47 AND 52 AND y BETWEEN 47 AND 52) THEN
+        terrain := starting_area_tiles[(y - 47) * 6 + (x - 47)];
+      ELSE
+        random_value := random();
+        terrain := CASE
+          WHEN random_value < 0.65 THEN 'grass'::terrain_type_enum
+          WHEN random_value < 0.80 THEN 'tree_sticks'::terrain_type_enum
+          WHEN random_value < 0.925 THEN 'tree_residue'::terrain_type_enum
+          ELSE 'stone'::terrain_type_enum
+        END;
+      END IF;
 
-      INSERT INTO world_tiles ( world_id, x_coord, y_coord, locked, terrain_type)
+      INSERT INTO world_tiles (
+        world_id, x_coord, y_coord, locked, terrain_type
+      )
       VALUES (
-              new_world_id,
-              x,
-              y,
-              NOT (
-                  x BETWEEN 47 AND 52
-                  AND y BETWEEN 47 AND 52
-              ), -- 6x6 in middle unlocked
-              terrain
-          );
+        new_world_id, x, y,
+        NOT (x BETWEEN 47 AND 52 AND y BETWEEN 47 AND 52),
+        terrain
+      );
     END LOOP;
   END LOOP;
 END;
