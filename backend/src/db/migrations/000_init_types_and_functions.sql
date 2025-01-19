@@ -108,7 +108,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION validate_crop(
   p_growth_time INTEGER,
   p_base_price INTEGER,
-  p_season VARCHAR
+  p_season season_enum
 ) RETURNS BOOLEAN AS $$
 BEGIN
   IF p_growth_time <= 0 THEN
