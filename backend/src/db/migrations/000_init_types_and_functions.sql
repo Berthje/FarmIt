@@ -3,16 +3,14 @@ DROP TYPE IF EXISTS item_type_enum CASCADE;
 DROP TYPE IF EXISTS rarity_enum CASCADE;
 DROP TYPE IF EXISTS season_enum CASCADE;
 DROP TYPE IF EXISTS plantable_category_enum CASCADE;
+DROP TYPE IF EXISTS terrain_type_enum CASCADE;
 
 -- Create ENUM types
 CREATE TYPE item_type_enum AS ENUM ('plantable', 'tool');
 CREATE TYPE rarity_enum AS ENUM ('common', 'uncommon', 'rare', 'epic', 'legendary');
 CREATE TYPE season_enum AS ENUM ('spring', 'summer', 'fall', 'winter');
-CREATE TYPE plantable_category_enum AS ENUM (
-    'vegetable',
-    'grain'
-    -- Future: 'tree', 'fruit', 'flower', 'magical'
-);
+CREATE TYPE plantable_category_enum AS ENUM ('vegetable', 'grain'); -- Future: 'tree', 'fruit', 'flower', 'magical'
+CREATE TYPE terrain_type_enum AS ENUM ('grass', 'stone', 'tree_sticks', 'tree_residue');
 
 -- Common validation functions
 CREATE OR REPLACE FUNCTION validate_item_exists(item_type item_type_enum, item_id integer)
@@ -36,13 +34,25 @@ BEGIN
   -- Fill 100x100 grid, only middle 6x6 unlocked
   FOR x IN 0..99 LOOP
     FOR y IN 0..99 LOOP
-      INSERT INTO world_tiles (world_id, x_coord, y_coord, locked)
+      random_value := random();
+      terrain := CASE
+        WHEN random_value < 0.65 THEN 'grass'::terrain_type_enum -- 65% chance
+        WHEN random_value < 0.80 THEN 'tree_sticks'::terrain_type_enum -- 15% chance
+        WHEN random_value < 0.925 THEN 'tree_residue'::terrain_type_enum -- 12.5% chance
+        ELSE 'stone'::terrain_type_enum -- 7.5% chance
+      END;
+
+      INSERT INTO world_tiles ( world_id, x_coord, y_coord, locked, terrain_type)
       VALUES (
-        new_world_id,
-        x,
-        y,
-        NOT (x BETWEEN 47 AND 52 AND y BETWEEN 47 AND 52)  -- 6x6 in middle
-      );
+              new_world_id,
+              x,
+              y,
+              NOT (
+                  x BETWEEN 47 AND 52
+                  AND y BETWEEN 47 AND 52
+              ), -- 6x6 in middle unlocked
+              terrain
+          );
     END LOOP;
   END LOOP;
 END;
