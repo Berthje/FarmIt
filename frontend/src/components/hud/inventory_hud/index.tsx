@@ -26,29 +26,62 @@ export const InventoryHUD: React.FC<InventoryHUDProps> = ({ items }) => {
         index: number
     ) => {
         if (!item) return;
+
+        // Create custom drag image
+        const dragImage = document.createElement("div");
+        dragImage.className =
+            "w-14 h-14 bg-green-800 rounded-lg border-2 border-yellow-400 opacity-50";
+        document.body.appendChild(dragImage);
+
+        e.dataTransfer.setDragImage(dragImage, 28, 28);
+        e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData(
             "text/plain",
             JSON.stringify({ ...item, fromSlot: index })
         );
+
+        // Cleanup
+        setTimeout(() => document.body.removeChild(dragImage), 0);
+    };
+
+    const isItemInToolbar = (itemId: number): boolean => {
+        return toolbarItems.some((item) => item?.id === itemId);
     };
 
     const handleDrop = (e: React.DragEvent, slotIndex: number) => {
         e.preventDefault();
         const itemData = JSON.parse(e.dataTransfer.getData("text/plain"));
+
         const newToolbar = [...toolbarItems];
 
-        const existingItem = toolbarItems[slotIndex];
-        if (existingItem) {
-            const oldSlotIndex = toolbarItems.findIndex(
-                (item) => item?.id === itemData.id
-            );
-            if (oldSlotIndex !== -1) {
-                newToolbar[oldSlotIndex] = existingItem;
+        if (itemData.fromSlot !== undefined) {
+            const temp = newToolbar[slotIndex];
+            newToolbar[slotIndex] = itemData;
+            newToolbar[itemData.fromSlot] = temp;
+
+            delete newToolbar[slotIndex].fromSlot;
+        } else {
+            if (isItemInToolbar(itemData.id)) {
+                return;
             }
+            newToolbar[slotIndex] = itemData;
         }
 
-        newToolbar[slotIndex] = itemData;
         setToolbarItems(newToolbar);
+    };
+
+    const handleDragOver = (e: React.DragEvent, slotIndex: number) => {
+        e.preventDefault();
+        try {
+            const itemData = JSON.parse(e.dataTransfer.getData("text/plain"));
+            // Set visual feedback for valid/invalid drops
+            e.dataTransfer.dropEffect =
+                isItemInToolbar(itemData.id) && itemData.fromSlot === undefined
+                    ? "none"
+                    : "move";
+        } catch {
+            e.dataTransfer.dropEffect = "move";
+        }
     };
 
     return (
@@ -73,8 +106,9 @@ export const InventoryHUD: React.FC<InventoryHUDProps> = ({ items }) => {
                             onDragStart={(e) =>
                                 handleToolbarDragStart(e, item, index)
                             }
-                            onDragOver={(e) => e.preventDefault()}
+                            onDragOver={(e) => handleDragOver(e, index)}
                             onDrop={(e) => handleDrop(e, index)}
+                            className="cursor-grab active:cursor-grabbing"
                         >
                             <InventorySlot
                                 item={item}
@@ -97,9 +131,7 @@ export const InventoryHUD: React.FC<InventoryHUDProps> = ({ items }) => {
             {/* Modal with lower z-index */}
             {isInventoryOpen && (
                 <div className="fixed inset-0 z-50">
-                    <div
-                        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                    />
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
                     <InventoryPanel
                         onClose={() => setIsInventoryOpen(false)}
                         items={items}
