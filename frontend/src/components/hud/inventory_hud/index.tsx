@@ -20,9 +20,16 @@ export const InventoryHUD: React.FC<InventoryHUDProps> = ({ items }) => {
     );
     const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
 
-    const handleToolbarDragStart = (e: React.DragEvent, item: any, index: number) => {
+    const handleToolbarDragStart = (
+        e: React.DragEvent,
+        item: any,
+        index: number
+    ) => {
         if (!item) return;
-        e.dataTransfer.setData("text/plain", JSON.stringify({ ...item, fromSlot: index }));
+        e.dataTransfer.setData(
+            "text/plain",
+            JSON.stringify({ ...item, fromSlot: index })
+        );
     };
 
     const handleDrop = (e: React.DragEvent, slotIndex: number) => {
@@ -46,8 +53,7 @@ export const InventoryHUD: React.FC<InventoryHUDProps> = ({ items }) => {
 
     return (
         <>
-            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 pointer-events-auto flex items-end gap-2">
-                {/* Backpack Button */}
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 pointer-events-auto flex items-end gap-2 z-[60]">
                 <button
                     onClick={() => setIsInventoryOpen(true)}
                     className="w-14 h-14 bg-green-800/90 rounded-xl border-2 border-yellow-400 hover:bg-green-700/90 transition-all hover:scale-105"
@@ -59,11 +65,14 @@ export const InventoryHUD: React.FC<InventoryHUDProps> = ({ items }) => {
                     />
                 </button>
 
-                {/* Toolbar */}
                 <div className="flex gap-2 p-3 bg-green-900/90 rounded-xl border-2 border-yellow-400 shadow-lg">
                     {toolbarItems.map((item, index) => (
                         <div
                             key={index}
+                            draggable={!!item}
+                            onDragStart={(e) =>
+                                handleToolbarDragStart(e, item, index)
+                            }
                             onDragOver={(e) => e.preventDefault()}
                             onDrop={(e) => handleDrop(e, index)}
                         >
@@ -85,22 +94,28 @@ export const InventoryHUD: React.FC<InventoryHUDProps> = ({ items }) => {
                 </div>
             </div>
 
+            {/* Modal with lower z-index */}
             {isInventoryOpen && (
-                <InventoryPanel
-                    onClose={() => setIsInventoryOpen(false)}
-                    items={items}
-                    onAddToToolbar={(item) => {
-                        const firstEmptySlot = toolbarItems.findIndex(
-                            (slot) => !slot
-                        );
-                        if (firstEmptySlot !== -1) {
-                            const newToolbar = [...toolbarItems];
-                            newToolbar[firstEmptySlot] = item;
-                            setToolbarItems(newToolbar);
-                        }
-                    }}
-                    toolbarItems={toolbarItems}
-                />
+                <div className="fixed inset-0 z-50">
+                    <div
+                        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                    />
+                    <InventoryPanel
+                        onClose={() => setIsInventoryOpen(false)}
+                        items={items}
+                        onAddToToolbar={(item) => {
+                            const firstEmptySlot = toolbarItems.findIndex(
+                                (slot) => !slot
+                            );
+                            if (firstEmptySlot !== -1) {
+                                const newToolbar = [...toolbarItems];
+                                newToolbar[firstEmptySlot] = item;
+                                setToolbarItems(newToolbar);
+                            }
+                        }}
+                        toolbarItems={toolbarItems}
+                    />
+                </div>
             )}
         </>
     );
