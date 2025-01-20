@@ -32,15 +32,40 @@ async function seedTools() {
 
 async function seedToolbarSlots() {
 	await query(`
+    WITH valid_tools AS (
+      SELECT id FROM tools
+    ),
+    valid_plantables AS (
+      SELECT id FROM plantables
+    ),
+    valid_harvested_crops AS (
+      SELECT id FROM harvested_crops
+    ),
+    toolbar_data AS (
+      SELECT
+        user_id, slot_index, item_type, item_id,
+        CASE
+          WHEN item_type = 'tool' AND EXISTS (SELECT 1 FROM valid_tools WHERE id = item_id) THEN true
+          WHEN item_type = 'plantable' AND EXISTS (SELECT 1 FROM valid_plantables WHERE id = item_id) THEN true
+          WHEN item_type = 'harvested_crop' AND EXISTS (SELECT 1 FROM valid_harvested_crops WHERE id = item_id) THEN true
+          ELSE false
+        END as is_valid
+      FROM (VALUES
+        (1, 0, 'tool'::item_type_enum, 1),
+        (1, 1, 'plantable'::item_type_enum, 1),
+        (1, 2, 'tool'::item_type_enum, 2),
+        (2, 0, 'plantable'::item_type_enum, 2),
+        (2, 1, 'harvested_crop'::item_type_enum, 1),
+        (2, 2, 'plantable'::item_type_enum, 3)
+      ) as t(user_id, slot_index, item_type, item_id)
+    )
     INSERT INTO toolbar_slots
       (user_id, slot_index, item_type, item_id, created_at, updated_at)
-    VALUES
-      (1, 0, 'tool', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-      (1, 1, 'plantable', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-      (1, 2, 'tool', 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-      (2, 0, 'plantable', 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-      (2, 1, 'harvested_crop', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-      (2, 2, 'plantable', 3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    SELECT
+      user_id, slot_index, item_type, item_id,
+      CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+    FROM toolbar_data
+    WHERE is_valid = true
     ON CONFLICT (user_id, slot_index)
     DO UPDATE SET
       item_type = EXCLUDED.item_type,
