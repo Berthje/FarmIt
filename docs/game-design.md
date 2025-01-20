@@ -37,7 +37,7 @@ endless fun and growth opportunities.
   - The farm operates on a grid system where each cell represents a plot of
     land.
 
-  - Initially, players start with a 6x6 grid, with opportunities to expand
+  - Initially, players start with a 10x10 grid, with opportunities to expand
     incrementally by purchasing additional land using in-game currency.
 
   - Land expansion introduces strategic planning as players decide between

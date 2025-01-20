@@ -1,28 +1,20 @@
 import { Scene } from "phaser";
-import { TerrainType } from "../types/map_types";
+import { TERRAIN_COLORS, TerrainType } from "../types/map_types";
 import { MAP_CONFIG } from "../config/mapConfig";
 import { GAME_ASSETS } from "../../../assets/constants";
 
 export class MainScene extends Scene {
     private tileSize: number;
-    private mapData!: TerrainType[][];
+    private mapData!: TerrainType[][]; // Add ! for definite assignment
     private isDragging: boolean = false;
-    private lastPointerPosition: { x: number; y: number } = { x: 0, y: 0 };
-    private cameraMoveSpeed: number = 8;
-    private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 
     constructor() {
-        super({
-            key: "MainScene",
-            input: {
-                keyboard: true,
-            },
-        });
+        super({ key: "MainScene" });
         this.tileSize = MAP_CONFIG.tileSize;
     }
 
     preload() {
-        this.load.image("grass", GAME_ASSETS.SPRITES.TERRAIN.GRASS);
+        //this.load.image("grass", GAME_ASSETS.SPRITES.TERRAIN.GRASS);
         // this.load.image("tree_sticks", GAME_ASSETS.SPRITES.TERRAIN.TREE_STICKS);
         // this.load.image(
         //     "tree_residue",
@@ -32,9 +24,10 @@ export class MainScene extends Scene {
     }
 
     create() {
+        // Initialize map data
         this.generateTemporaryMap();
 
-        // Setup camera
+        // Setup camera controls
         const camera = this.cameras.main;
         camera.setZoom(1);
         camera.setBounds(
@@ -44,43 +37,25 @@ export class MainScene extends Scene {
             MAP_CONFIG.height * this.tileSize
         );
 
-        // Center camera on middle of map
-        camera.centerOn(
-            (MAP_CONFIG.width * this.tileSize) / 2,
-            (MAP_CONFIG.height * this.tileSize) / 2
-        );
-
-        if (this.input.keyboard) {
-            this.cursors = this.input.keyboard.createCursorKeys();
-            this.input.keyboard.on("keydown-W", () => this.moveCamera("up"));
-            this.input.keyboard.on("keydown-S", () => this.moveCamera("down"));
-            this.input.keyboard.on("keydown-A", () => this.moveCamera("left"));
-            this.input.keyboard.on("keydown-D", () => this.moveCamera("right"));
-        }
-
-        // Mouse drag controls
-        this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+        // Enable drag scroll with improved handling
+        this.input.on("pointerdown", () => {
             this.isDragging = true;
-            this.lastPointerPosition = { x: pointer.x, y: pointer.y };
-        });
-
-        this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
-            if (this.isDragging && pointer.isDown) {
-                const deltaX = pointer.x - this.lastPointerPosition.x;
-                const deltaY = pointer.y - this.lastPointerPosition.y;
-
-                camera.scrollX -= deltaX / camera.zoom;
-                camera.scrollY -= deltaY / camera.zoom;
-
-                this.lastPointerPosition = { x: pointer.x, y: pointer.y };
-            }
         });
 
         this.input.on("pointerup", () => {
             this.isDragging = false;
         });
 
-        // Smooth zoom with mouse wheel
+        this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
+            if (this.isDragging && pointer.isDown) {
+                camera.scrollX -=
+                    (pointer.x - pointer.prevPosition.x) / camera.zoom;
+                camera.scrollY -=
+                    (pointer.y - pointer.prevPosition.y) / camera.zoom;
+            }
+        });
+
+        // Enable zoom with mouse wheel
         this.input.on(
             "wheel",
             (
@@ -89,34 +64,13 @@ export class MainScene extends Scene {
                 deltaX: number,
                 deltaY: number
             ) => {
-                const zoomFactor = 0.1;
-                const newZoom = Phaser.Math.Clamp(
-                    camera.zoom - deltaY * zoomFactor * 0.01,
-                    MAP_CONFIG.minZoom,
-                    MAP_CONFIG.maxZoom
-                );
-
-                // Get pointer world position before zoom
-                const worldPoint = pointer.positionToCamera(camera);
-
-                // Apply new zoom
-                camera.zoomTo(
-                    newZoom,
-                    250, // Duration in ms
-                    "Sine.easeInOut",
-                    true,
-                    (
-                        _camera: Phaser.Cameras.Scene2D.Camera,
-                        progress: number
-                    ) => {
-                        // Adjust camera position to zoom toward pointer
-                        if (progress === 1) {
-                            const newWorldPoint =
-                                pointer.positionToCamera(camera);
-                            camera.scrollX += worldPoint.x - newWorldPoint.x;
-                            camera.scrollY += worldPoint.y - newWorldPoint.y;
-                        }
-                    }
+                const newZoom = camera.zoom - deltaY * 0.001;
+                camera.setZoom(
+                    Phaser.Math.Clamp(
+                        newZoom,
+                        MAP_CONFIG.minZoom,
+                        MAP_CONFIG.maxZoom
+                    )
                 );
             }
         );
@@ -124,78 +78,117 @@ export class MainScene extends Scene {
         this.renderMap();
     }
 
-    update() {
-        if (this.input.keyboard) {
-            if (
-                this.cursors.up.isDown ||
-                this.input.keyboard.checkDown(this.input.keyboard.addKey("W"))
-            ) {
-                this.moveCamera("up");
-            }
-            if (
-                this.cursors.down.isDown ||
-                this.input.keyboard.checkDown(this.input.keyboard.addKey("S"))
-            ) {
-                this.moveCamera("down");
-            }
-            if (
-                this.cursors.left.isDown ||
-                this.input.keyboard.checkDown(this.input.keyboard.addKey("A"))
-            ) {
-                this.moveCamera("left");
-            }
-            if (
-                this.cursors.right.isDown ||
-                this.input.keyboard.checkDown(this.input.keyboard.addKey("D"))
-            ) {
-                this.moveCamera("right");
-            }
-        }
-    }
-
-    private moveCamera(direction: "up" | "down" | "left" | "right") {
-        const camera = this.cameras.main;
-
-        switch (direction) {
-            case "up":
-                camera.scrollY -= this.cameraMoveSpeed / camera.zoom;
-                break;
-            case "down":
-                camera.scrollY += this.cameraMoveSpeed / camera.zoom;
-                break;
-            case "left":
-                camera.scrollX -= this.cameraMoveSpeed / camera.zoom;
-                break;
-            case "right":
-                camera.scrollX += this.cameraMoveSpeed / camera.zoom;
-                break;
-        }
-    }
-
     private generateTemporaryMap() {
+        // Initialize map with all grass
         this.mapData = Array(MAP_CONFIG.height)
             .fill(null)
-            .map(() =>
-                Array(MAP_CONFIG.width)
-                    .fill(null)
-                    .map(() => {
-                        return TerrainType.GRASS;
-                    })
-            );
+            .map(() => Array(MAP_CONFIG.width).fill(TerrainType.GRASS));
+
+        // Calculate center area coordinates (10x10)
+        const centerStart = {
+            x: Math.floor(MAP_CONFIG.width / 2) - 3,
+            y: Math.floor(MAP_CONFIG.height / 2) - 3,
+        };
+
+        // Generate random obstacles in center area (3-7 obstacles)
+        const obstacleCount = Phaser.Math.Between(3, 7);
+        const centerPositions = [];
+
+        // Generate all possible positions in 10x10 area
+        for (let y = 0; y < 10; y++) {
+            for (let x = 0; x < 10; x++) {
+                centerPositions.push({
+                    x: centerStart.x + x,
+                    y: centerStart.y + y,
+                });
+            }
+        }
+
+        // Randomly place obstacles
+        Phaser.Utils.Array.Shuffle(centerPositions);
+        for (let i = 0; i < obstacleCount; i++) {
+            const pos = centerPositions[i];
+            const random = Math.random();
+            if (random < 0.4) {
+                this.mapData[pos.y][pos.x] = TerrainType.TREE_STICKS;
+            } else if (random < 0.7) {
+                this.mapData[pos.y][pos.x] = TerrainType.TREE_RESIDUE;
+            } else {
+                this.mapData[pos.y][pos.x] = TerrainType.STONE;
+            }
+        }
+
+        // Fill rest of map with random terrain (outside center)
+        for (let y = 0; y < MAP_CONFIG.height; y++) {
+            for (let x = 0; x < MAP_CONFIG.width; x++) {
+                // Skip center area
+                if (
+                    y >= centerStart.y &&
+                    y < centerStart.y + 6 &&
+                    x >= centerStart.x &&
+                    x < centerStart.x + 6
+                ) {
+                    continue;
+                }
+
+                const random = Math.random();
+                if (random < 0.65) continue; // Keep grass
+                if (random < 0.8) this.mapData[y][x] = TerrainType.TREE_STICKS;
+                else if (random < 0.925)
+                    this.mapData[y][x] = TerrainType.TREE_RESIDUE;
+                else this.mapData[y][x] = TerrainType.STONE;
+            }
+        }
     }
 
     private renderMap() {
+        const centerStart = {
+            x: Math.floor(MAP_CONFIG.width / 2) - 3,
+            y: Math.floor(MAP_CONFIG.height / 2) - 3,
+        };
+
         for (let y = 0; y < MAP_CONFIG.height; y++) {
             for (let x = 0; x < MAP_CONFIG.width; x++) {
                 const terrainType = this.mapData[y][x];
-                const tile = this.add.image(
-                    x * this.tileSize + this.tileSize / 2,
-                    y * this.tileSize + this.tileSize / 2,
-                    terrainType
+
+                // Create base tile rectangle
+                const rect = this.add.rectangle(
+                    x * this.tileSize,
+                    y * this.tileSize,
+                    this.tileSize,
+                    this.tileSize,
+                    TERRAIN_COLORS[terrainType]
                 );
 
-                tile.setInteractive();
-                tile.on("pointerdown", () => this.handleTileClick(x, y));
+                // Add center area overlay
+                if (
+                    y >= centerStart.y &&
+                    y < centerStart.y + 6 &&
+                    x >= centerStart.x &&
+                    x < centerStart.x + 6
+                ) {
+                    const centerOverlay = this.add.rectangle(
+                        x * this.tileSize,
+                        y * this.tileSize,
+                        this.tileSize,
+                        this.tileSize,
+                        TERRAIN_COLORS.CENTER_AREA
+                    );
+                    centerOverlay.setAlpha(0.5);
+                    centerOverlay.setOrigin(0, 0);
+                }
+
+                // Add grid lines
+                rect.setStrokeStyle(1, 0x000000, 0.2);
+                rect.setOrigin(0, 0);
+
+                // Make interactive
+                rect.setInteractive();
+                rect.on("pointerdown", () => {
+                    if (!this.isDragging) {
+                        this.handleTileClick(x, y);
+                    }
+                });
             }
         }
     }

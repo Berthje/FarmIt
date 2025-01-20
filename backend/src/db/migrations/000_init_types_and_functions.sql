@@ -169,7 +169,7 @@ BEGIN
     AND locked = false;
 
     RETURN CASE
-        WHEN owned_tiles < 36 THEN 0           -- Initial 6x6 grid (free)
+        WHEN owned_tiles < 100 THEN 0           -- Initial 10x10 grid (free)
         WHEN owned_tiles < 250 THEN 50         -- First tier
         WHEN owned_tiles < 500 THEN 150        -- Second tier
         WHEN owned_tiles < 1000 THEN 300       -- Third tier
