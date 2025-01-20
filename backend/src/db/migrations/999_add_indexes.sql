@@ -34,3 +34,6 @@ CREATE INDEX idx_planted_crops_tile ON planted_crops (tile_id);
 CREATE INDEX idx_planted_crops_plantable ON planted_crops (plantable_id);
 
 CREATE INDEX idx_planted_crops_growth ON planted_crops (growth_stage);
+
+-- Toolbar slots indexes
+CREATE INDEX idx_toolbar_slots_user ON toolbar_slots (user_id);
