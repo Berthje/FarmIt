@@ -54,20 +54,32 @@ export const InventoryHUD: React.FC<InventoryHUDProps> = ({ items }) => {
     const handleDrop = (e: React.DragEvent, slotIndex: number) => {
         e.preventDefault();
         const itemData = JSON.parse(e.dataTransfer.getData("text/plain"));
-
         const newToolbar = [...toolbarItems];
 
+        // If dragging from toolbar slot to another toolbar slot
         if (itemData.fromSlot !== undefined) {
             const temp = newToolbar[slotIndex];
             newToolbar[slotIndex] = itemData;
             newToolbar[itemData.fromSlot] = temp;
-
             delete newToolbar[slotIndex].fromSlot;
-        } else {
-            if (isItemInToolbar(itemData.id)) {
-                return;
+        }
+        // If dragging from inventory
+        else {
+            // Check if item already exists in toolbar
+            const existingSlotIndex = toolbarItems.findIndex(
+                (item) => item?.id === itemData.id
+            );
+
+            // If item exists in toolbar, move it to new slot
+            if (existingSlotIndex !== -1) {
+                const temp = newToolbar[slotIndex];
+                newToolbar[slotIndex] = newToolbar[existingSlotIndex];
+                newToolbar[existingSlotIndex] = temp;
             }
-            newToolbar[slotIndex] = itemData;
+            // If item doesn't exist in toolbar, add it to new slot
+            else {
+                newToolbar[slotIndex] = itemData;
+            }
         }
 
         setToolbarItems(newToolbar);
