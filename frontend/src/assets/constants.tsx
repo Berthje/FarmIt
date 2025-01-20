@@ -43,6 +43,10 @@ export const GAME_ASSETS = {
         UI: {
             SETTINGS: "/assets/icons/settings_icon.svg",
             CLOSE: "/assets/icons/close_icon.svg",
+            INVENTORY: "/assets/icons/inventory_icon.svg",
+            SEED_BAG: "/assets/icons/seed_bag_icon.svg",
+            TOOLS: "/assets/icons/tools_icon.svg",
+            CROPS: "/assets/icons/crops_icon.svg",
             MASTER: "/assets/icons/master_icon.svg",
             MUSIC: "/assets/icons/music_icon.svg",
             SFX: "/assets/icons/sfx_icon.svg",
