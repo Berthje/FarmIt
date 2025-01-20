@@ -28,6 +28,12 @@ export const GAME_ASSETS = {
             GREG_SHOP: "/assets/sprites/ui/shops/greg.png",
             ALEJANDRO_SHOP: "/assets/sprites/ui/shops/alejandro.png",
         },
+        TERRAIN: {
+            GRASS: "/assets/sprites/tiles/terrain/grass.png",
+            // TREE_STICKS: "/assets/sprites/tiles/terrain/tree_sticks.png",
+            // TREE_RESIDUE: "/assets/sprites/tiles/terrain/tree_residue.png",
+            // STONE: "/assets/sprites/tiles/terrain/stone.png",
+        },
     },
     AUDIO: {
         MUSIC: {

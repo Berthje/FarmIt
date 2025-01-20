@@ -3,9 +3,9 @@ import { TerrainType } from '../types/map_types';
 export const MAP_CONFIG = {
   width: 100,
   height: 100,
-  tileSize: 32,
-  minZoom: 0.5,
-  maxZoom: 2,
+  tileSize: 16,
+  minZoom: 0.85,
+  maxZoom: 1.5,
 
   terrainTypes: {
     [TerrainType.GRASS]: {
