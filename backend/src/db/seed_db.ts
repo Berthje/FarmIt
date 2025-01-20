@@ -23,10 +23,52 @@ async function seedTools() {
 	await query(`
     INSERT INTO tools (name, durability, rarity, base_price) VALUES
     ('Basic Hoe', 100, 'common', 50),
-    ('Watering Can', 150, 'common', 75),
-    ('Golden Scythe', 500, 'rare', 300),
-    ('Magic Shears', 1000, 'epic', 1000)
+    ('Watering Can', 150, 'common', 75)
     ON CONFLICT DO NOTHING
+  `);
+}
+
+async function seedToolbarSlots() {
+	await query(`
+    WITH valid_tools AS (
+      SELECT id FROM tools
+    ),
+    valid_plantables AS (
+      SELECT id FROM plantables
+    ),
+    valid_harvested_crops AS (
+      SELECT id FROM harvested_crops
+    ),
+    toolbar_data AS (
+      SELECT
+        user_id, slot_index, item_type, item_id,
+        CASE
+          WHEN item_type = 'tool' AND EXISTS (SELECT 1 FROM valid_tools WHERE id = item_id) THEN true
+          WHEN item_type = 'plantable' AND EXISTS (SELECT 1 FROM valid_plantables WHERE id = item_id) THEN true
+          WHEN item_type = 'harvested_crop' AND EXISTS (SELECT 1 FROM valid_harvested_crops WHERE id = item_id) THEN true
+          ELSE false
+        END as is_valid
+      FROM (VALUES
+        (1, 0, 'tool'::item_type_enum, 1),
+        (1, 1, 'plantable'::item_type_enum, 1),
+        (1, 2, 'tool'::item_type_enum, 2),
+        (2, 0, 'plantable'::item_type_enum, 2),
+        (2, 1, 'harvested_crop'::item_type_enum, 1),
+        (2, 2, 'plantable'::item_type_enum, 3)
+      ) as t(user_id, slot_index, item_type, item_id)
+    )
+    INSERT INTO toolbar_slots
+      (user_id, slot_index, item_type, item_id, created_at, updated_at)
+    SELECT
+      user_id, slot_index, item_type, item_id,
+      CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+    FROM toolbar_data
+    WHERE is_valid = true
+    ON CONFLICT (user_id, slot_index)
+    DO UPDATE SET
+      item_type = EXCLUDED.item_type,
+      item_id = EXCLUDED.item_id,
+      updated_at = CURRENT_TIMESTAMP
   `);
 }
 
@@ -36,24 +78,36 @@ async function seedPlantables() {
       name,
       category,
       growth_time,
-      seasons,
+      grow_seasons,
       base_price,
       harvest_min,
       harvest_max,
       properties
     ) VALUES
-    ('Beetroot', 'vegetable', 120, ARRAY['summer','fall']::season_enum[], 15, 1, 2, '{"water_needs": "medium"}'),
-    ('Carrot', 'vegetable', 100, ARRAY['spring','fall']::season_enum[], 12, 1, 3, '{"water_needs": "medium"}'),
-    ('Garlic', 'vegetable', 90, ARRAY['spring']::season_enum[], 18, 1, 1, '{"water_needs": "low"}'),
-    ('Gingeroot', 'vegetable', 150, ARRAY['summer']::season_enum[], 25, 1, 2, '{"water_needs": "high"}'),
-    ('Kohlrabi', 'vegetable', 110, ARRAY['spring','fall']::season_enum[], 20, 1, 2, '{"water_needs": "medium"}'),
-    ('Onion', 'vegetable', 100, ARRAY['spring','summer']::season_enum[], 10, 1, 2, '{"water_needs": "medium"}'),
-    ('Parsnip', 'vegetable', 95, ARRAY['fall']::season_enum[], 15, 1, 2, '{"water_needs": "medium"}'),
-    ('Potato', 'vegetable', 140, ARRAY['spring','summer']::season_enum[], 20, 2, 4, '{"water_needs": "medium"}'),
-    ('Purple Yam', 'vegetable', 160, ARRAY['summer']::season_enum[], 30, 1, 2, '{"water_needs": "high"}'),
-    ('Radish', 'vegetable', 70, ARRAY['spring','summer','fall']::season_enum[], 8, 1, 3, '{"water_needs": "medium"}'),
-    ('Sweet Potato', 'vegetable', 150, ARRAY['summer','fall']::season_enum[], 25, 2, 3, '{"water_needs": "medium"}'),
-    ('Turnip', 'vegetable', 85, ARRAY['spring','fall']::season_enum[], 12, 1, 2, '{"water_needs": "medium"}')
+    ('Beetroot Seeds', 'vegetable', 120, ARRAY['summer','fall']::season_enum[], 15, 1, 2, '{"water_needs": "medium"}'),
+    ('Carrot Seeds', 'vegetable', 100, ARRAY['spring','fall']::season_enum[], 12, 1, 3, '{"water_needs": "medium"}'),
+    ('Garlic Seeds', 'vegetable', 90, ARRAY['spring']::season_enum[], 18, 1, 1, '{"water_needs": "low"}'),
+    ('Gingeroot Seeds', 'vegetable', 150, ARRAY['summer']::season_enum[], 25, 1, 2, '{"water_needs": "high"}'),
+    ('Kohlrabi Seeds', 'vegetable', 110, ARRAY['spring','fall']::season_enum[], 20, 1, 2, '{"water_needs": "medium"}'),
+    ('Onion Seeds', 'vegetable', 100, ARRAY['spring','summer']::season_enum[], 10, 1, 2, '{"water_needs": "medium"}'),
+    ('Parsnip Seeds', 'vegetable', 95, ARRAY['fall']::season_enum[], 15, 1, 2, '{"water_needs": "medium"}'),
+    ('Potato Seeds', 'vegetable', 140, ARRAY['spring','summer']::season_enum[], 20, 2, 4, '{"water_needs": "medium"}'),
+    ('Purple Yam Seeds', 'vegetable', 160, ARRAY['summer']::season_enum[], 30, 1, 2, '{"water_needs": "high"}'),
+    ('Radish Seeds', 'vegetable', 70, ARRAY['spring','summer','fall']::season_enum[], 8, 1, 3, '{"water_needs": "medium"}'),
+    ('Sweet Potato Seeds', 'vegetable', 150, ARRAY['summer','fall']::season_enum[], 25, 2, 3, '{"water_needs": "medium"}'),
+    ('Turnip Seeds', 'vegetable', 85, ARRAY['spring','fall']::season_enum[], 12, 1, 2, '{"water_needs": "medium"}')
+    ON CONFLICT DO NOTHING
+  `);
+}
+
+async function seedHarvestedCrops() {
+	await query(`
+    INSERT INTO harvested_crops (name, plantable_id, base_price)
+    SELECT
+      REPLACE(name, ' Seeds', ''),
+      id as plantable_id,
+      base_price * 1.5
+    FROM plantables
     ON CONFLICT DO NOTHING
   `);
 }
@@ -217,11 +271,13 @@ export async function seedDatabase() {
 	await seedPlayerStats();
 	await seedTools();
 	await seedPlantables();
+	await seedHarvestedCrops();
 	await seedPlantedCrops();
 	await seedInventory();
 	await seedMarketListings();
 	await seedAuctions();
 	await seedAuctionBids();
+	await seedToolbarSlots();
 
 	console.log("Database seeded with initial data!");
 }
