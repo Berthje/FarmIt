@@ -6,7 +6,7 @@ DROP TYPE IF EXISTS plantable_category_enum CASCADE;
 DROP TYPE IF EXISTS terrain_type_enum CASCADE;
 
 -- Create ENUM types
-CREATE TYPE item_type_enum AS ENUM ('plantable', 'tool');
+CREATE TYPE item_type_enum AS ENUM ('plantable', 'tool', 'harvested_crop');
 CREATE TYPE rarity_enum AS ENUM ('common', 'uncommon', 'rare', 'epic', 'legendary');
 CREATE TYPE season_enum AS ENUM ('spring', 'summer', 'fall', 'winter');
 CREATE TYPE plantable_category_enum AS ENUM ('vegetable', 'grain'); -- Future: 'tree', 'fruit', 'flower', 'magical'
@@ -17,9 +17,25 @@ CREATE OR REPLACE FUNCTION validate_item_exists(item_type item_type_enum, item_i
 RETURNS BOOLEAN AS $$
 BEGIN
   RETURN CASE item_type
-    WHEN 'plantable' THEN EXISTS(SELECT 1 FROM plantables WHERE id = item_id)
-    WHEN 'tool' THEN EXISTS(SELECT 1 FROM tools WHERE id = item_id)
-  END;
+    WHEN 'plantable' THEN EXISTS (
+        SELECT 1
+        FROM plantables
+        WHERE
+            id = item_id
+    )
+    WHEN 'tool' THEN EXISTS (
+        SELECT 1
+        FROM tools
+        WHERE
+            id = item_id
+    )
+    WHEN 'harvested_crop' THEN EXISTS (
+        SELECT 1
+        FROM harvested_crops
+        WHERE
+            id = item_id
+    )
+END;
 END;
 $$ LANGUAGE plpgsql;
 
