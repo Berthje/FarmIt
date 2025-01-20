@@ -136,18 +136,18 @@ export class MainScene extends Phaser.Scene {
                     );
                 }
 
-                // Add coordinates
-                this.add.text(
-                    pixelX + 2,
-                    pixelY + 2,
-                    `${x},${y}`,
-                    {
-                        fontSize: "8px",
-                        color: !(x >= 45 && x <= 54 && y >= 45 && y <= 54)
-                            ? "#666666"
-                            : "#000000",
-                    },
-                );
+                // // Add coordinates
+                // this.add.text(
+                //     pixelX + 2,
+                //     pixelY + 2,
+                //     `${x},${y}`,
+                //     {
+                //         fontSize: "8px",
+                //         color: !(x >= 45 && x <= 54 && y >= 45 && y <= 54)
+                //             ? "#666666"
+                //             : "#000000",
+                //     },
+                // );
             }
         }
 
