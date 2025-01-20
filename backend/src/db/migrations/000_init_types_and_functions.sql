@@ -47,7 +47,7 @@ DECLARE
   terrain terrain_type_enum;
   target_obstacles INTEGER;
   obstacle_count INTEGER := 0;
-  starting_area_tiles terrain_type_enum[36];
+  starting_area_tiles terrain_type_enum[100];
   i INTEGER;
 BEGIN
   -- Create world entry
@@ -57,7 +57,7 @@ BEGIN
   target_obstacles := 3 + floor(random() * 5)::INTEGER;
 
   -- Initialize starting area with grass
-  FOR i IN 0..35 LOOP
+  FOR i IN 0..99 LOOP
     starting_area_tiles[i] := 'grass'::terrain_type_enum;
   END LOOP;
 
@@ -73,8 +73,8 @@ BEGIN
   -- Fill 100x100 grid
   FOR x IN 0..99 LOOP
     FOR y IN 0..99 LOOP
-      IF (x BETWEEN 47 AND 52 AND y BETWEEN 47 AND 52) THEN
-        terrain := starting_area_tiles[(y - 47) * 6 + (x - 47)];
+      IF (x BETWEEN 45 AND 54 AND y BETWEEN 45 AND 54) THEN
+        terrain := starting_area_tiles[(y - 45) * 10 + (x - 45)];
       ELSE
         random_value := random();
         terrain := CASE

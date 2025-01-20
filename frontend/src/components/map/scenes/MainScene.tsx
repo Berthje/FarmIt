@@ -86,15 +86,15 @@ export class MainScene extends Scene {
 
         // Calculate center area coordinates (10x10)
         const centerStart = {
-            x: Math.floor(MAP_CONFIG.width / 2) - 3,
-            y: Math.floor(MAP_CONFIG.height / 2) - 3,
+            x: Math.floor(MAP_CONFIG.width / 2) - 5, // Changed from 3 to 5
+            y: Math.floor(MAP_CONFIG.height / 2) - 5, // Changed from 3 to 5
         };
 
         // Generate random obstacles in center area (3-7 obstacles)
         const obstacleCount = Phaser.Math.Between(3, 7);
         const centerPositions = [];
 
-        // Generate all possible positions in 10x10 area
+        // Generate all possible positions in 10x10 area (changed from 6x6)
         for (let y = 0; y < 10; y++) {
             for (let x = 0; x < 10; x++) {
                 centerPositions.push({
@@ -121,12 +121,12 @@ export class MainScene extends Scene {
         // Fill rest of map with random terrain (outside center)
         for (let y = 0; y < MAP_CONFIG.height; y++) {
             for (let x = 0; x < MAP_CONFIG.width; x++) {
-                // Skip center area
+                // Skip center area (10x10)
                 if (
                     y >= centerStart.y &&
-                    y < centerStart.y + 6 &&
+                    y < centerStart.y + 10 &&
                     x >= centerStart.x &&
-                    x < centerStart.x + 6
+                    x < centerStart.x + 10
                 ) {
                     continue;
                 }
@@ -143,8 +143,8 @@ export class MainScene extends Scene {
 
     private renderMap() {
         const centerStart = {
-            x: Math.floor(MAP_CONFIG.width / 2) - 3,
-            y: Math.floor(MAP_CONFIG.height / 2) - 3,
+            x: Math.floor(MAP_CONFIG.width / 2) - 5,
+            y: Math.floor(MAP_CONFIG.height / 2) - 5,
         };
 
         for (let y = 0; y < MAP_CONFIG.height; y++) {
@@ -163,9 +163,9 @@ export class MainScene extends Scene {
                 // Add center area overlay
                 if (
                     y >= centerStart.y &&
-                    y < centerStart.y + 6 &&
+                    y < centerStart.y + 10 &&
                     x >= centerStart.x &&
-                    x < centerStart.x + 6
+                    x < centerStart.x + 10
                 ) {
                     const centerOverlay = this.add.rectangle(
                         x * this.tileSize,
