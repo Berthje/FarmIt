@@ -7,9 +7,12 @@ export class MainScene extends Phaser.Scene {
     private graphics!: Phaser.GameObjects.Graphics;
     private cameraX: number = 0;
     private cameraY: number = 0;
-    private isDragging: boolean = false;
-    private lastPointerX: number = 0;
-    private lastPointerY: number = 0;
+    private cursors!: {
+        up: Phaser.Input.Keyboard.Key;
+        left: Phaser.Input.Keyboard.Key;
+        down: Phaser.Input.Keyboard.Key;
+        right: Phaser.Input.Keyboard.Key;
+    };
 
     constructor() {
         super({ key: "MainScene" });
@@ -28,53 +31,17 @@ export class MainScene extends Phaser.Scene {
         // Setup camera
         this.setupCamera();
 
-        this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
-            this.isDragging = true;
-            this.lastPointerX = pointer.x;
-            this.lastPointerY = pointer.y;
-        });
-
-        this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
-            if (this.isDragging) {
-                // Calculate movement delta
-                const deltaX = pointer.x - this.lastPointerX;
-                const deltaY = pointer.y - this.lastPointerY;
-
-                // Calculate bounds
-                const maxX = (MAP_CONFIG.width * MAP_CONFIG.tileSize) -
-                    this.cameras.main.width;
-                const maxY = (MAP_CONFIG.height * MAP_CONFIG.tileSize) -
-                    this.cameras.main.height;
-
-                // Update scroll position with proper Y-axis movement
-                const newScrollX = Phaser.Math.Clamp(
-                    this.cameras.main.scrollX - deltaX,
-                    0,
-                    maxX,
-                );
-                const newScrollY = Phaser.Math.Clamp(
-                    this.cameras.main.scrollY - deltaY,
-                    0,
-                    maxY,
-                );
-
-                // Set new camera position
-                this.cameras.main.setScroll(newScrollX, newScrollY);
-
-                // Update pointer position
-                this.lastPointerX = pointer.x;
-                this.lastPointerY = pointer.y;
-
-                // Debug
-                console.log(
-                    `ScrollY=${this.cameras.main.scrollY}, MaxY=${maxY}, DeltaY=${deltaY}`,
-                );
-            }
-        });
-
-        this.input.on("pointerup", () => {
-            this.isDragging = false;
-        });
+        this.cursors = this.input.keyboard!.addKeys({
+            up: Phaser.Input.Keyboard.KeyCodes.W,
+            left: Phaser.Input.Keyboard.KeyCodes.A,
+            down: Phaser.Input.Keyboard.KeyCodes.S,
+            right: Phaser.Input.Keyboard.KeyCodes.D,
+        }) as {
+            up: Phaser.Input.Keyboard.Key;
+            left: Phaser.Input.Keyboard.Key;
+            down: Phaser.Input.Keyboard.Key;
+            right: Phaser.Input.Keyboard.Key;
+        };
     }
 
     private generateMap() {
@@ -166,7 +133,46 @@ export class MainScene extends Phaser.Scene {
         );
     }
 
+    update(time: number, delta: number) {
+        const speed = 5;
+        let moved = false;
+
+        if (this.cursors.left.isDown) {
+            this.cameraX -= speed;
+            moved = true;
+        }
+        if (this.cursors.right.isDown) {
+            this.cameraX += speed;
+            moved = true;
+        }
+        if (this.cursors.up.isDown) {
+            this.cameraY -= speed;
+            moved = true;
+        }
+        if (this.cursors.down.isDown) {
+            this.cameraY += speed;
+            moved = true;
+        }
+
+        if (moved) {
+            // Calculate bounds considering zoom
+            const zoom = this.cameras.main.zoom;
+            const maxX = (MAP_CONFIG.width * MAP_CONFIG.tileSize * zoom) -
+                this.cameras.main.width;
+            const maxY = (MAP_CONFIG.height * MAP_CONFIG.tileSize * zoom) -
+                this.cameras.main.height;
+
+            // Clamp camera positions within bounds
+            this.cameraX = Phaser.Math.Clamp(this.cameraX, 0, maxX);
+            this.cameraY = Phaser.Math.Clamp(this.cameraY, 0, maxY);
+
+            // Set new camera position
+            this.cameras.main.setScroll(this.cameraX, this.cameraY);
+        }
+    }
+
     private setupCamera() {
+        // Set world bounds
         this.cameras.main.setBounds(
             0,
             0,
@@ -174,13 +180,21 @@ export class MainScene extends Phaser.Scene {
             MAP_CONFIG.height * MAP_CONFIG.tileSize,
         );
 
-        // Center the camera
+        // Set initial zoom (between minZoom and maxZoom from MAP_CONFIG)
+        this.cameras.main.setZoom(1); // Or any value between MAP_CONFIG.minZoom and maxZoom
+
+        // Center on the middle of the map
         const centerX = (MAP_CONFIG.width * MAP_CONFIG.tileSize) / 2;
         const centerY = (MAP_CONFIG.height * MAP_CONFIG.tileSize) / 2;
-        this.cameras.main.scrollX = centerX - (this.cameras.main.width / 2);
-        this.cameras.main.scrollY = centerY - (this.cameras.main.height / 2);
 
-        // Enable debug camera mode
+        // Initialize camera position
+        this.cameraX = centerX - (this.cameras.main.width / 2);
+        this.cameraY = centerY - (this.cameras.main.height / 2);
+
+        // Set initial scroll position
+        this.cameras.main.setScroll(this.cameraX, this.cameraY);
+
+        // Set background color for debug purposes
         this.cameras.main.setBackgroundColor(0x002244);
     }
 }

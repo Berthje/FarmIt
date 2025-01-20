@@ -29,5 +29,7 @@ export const MapRenderer: React.FC = () => {
         };
     }, []);
 
-    return <div id="game-container" />;
+    return (
+        <div id="game-container" style={{ width: "100vw", height: "100vh" }} />
+    );
 };
