@@ -24,8 +24,6 @@ async function seedTools() {
     INSERT INTO tools (name, durability, rarity, base_price) VALUES
     ('Basic Hoe', 100, 'common', 50),
     ('Watering Can', 150, 'common', 75),
-    ('Golden Scythe', 500, 'rare', 300),
-    ('Magic Shears', 1000, 'epic', 1000)
     ON CONFLICT DO NOTHING
   `);
 }
