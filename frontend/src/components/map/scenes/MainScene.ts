@@ -7,12 +7,9 @@ export class MainScene extends Phaser.Scene {
     private graphics!: Phaser.GameObjects.Graphics;
     private cameraX: number = 0;
     private cameraY: number = 0;
-    private cursors!: {
-        up: Phaser.Input.Keyboard.Key;
-        left: Phaser.Input.Keyboard.Key;
-        down: Phaser.Input.Keyboard.Key;
-        right: Phaser.Input.Keyboard.Key;
-    };
+    private isDragging: boolean = false;
+    private lastPointerX: number = 0;
+    private lastPointerY: number = 0;
 
     constructor() {
         super({ key: "MainScene" });
@@ -31,17 +28,39 @@ export class MainScene extends Phaser.Scene {
         // Setup camera
         this.setupCamera();
 
-        this.cursors = this.input.keyboard!.addKeys({
-            up: Phaser.Input.Keyboard.KeyCodes.W,
-            left: Phaser.Input.Keyboard.KeyCodes.A,
-            down: Phaser.Input.Keyboard.KeyCodes.S,
-            right: Phaser.Input.Keyboard.KeyCodes.D,
-        }) as {
-            up: Phaser.Input.Keyboard.Key;
-            left: Phaser.Input.Keyboard.Key;
-            down: Phaser.Input.Keyboard.Key;
-            right: Phaser.Input.Keyboard.Key;
-        };
+        this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
+            this.isDragging = true;
+            this.lastPointerX = pointer.x;
+            this.lastPointerY = pointer.y;
+        });
+
+        this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
+            if (this.isDragging) {
+                const deltaX = pointer.x - this.lastPointerX;
+                const deltaY = pointer.y - this.lastPointerY;
+
+                this.cameraX -= deltaX;
+                this.cameraY -= deltaY;
+
+                const zoom = this.cameras.main.zoom;
+                const maxX = (MAP_CONFIG.width * MAP_CONFIG.tileSize * zoom) -
+                    this.cameras.main.width;
+                const maxY = (MAP_CONFIG.height * MAP_CONFIG.tileSize * zoom) -
+                    this.cameras.main.height;
+
+                this.cameraX = Phaser.Math.Clamp(this.cameraX, 0, maxX);
+                this.cameraY = Phaser.Math.Clamp(this.cameraY, 0, maxY);
+
+                this.cameras.main.setScroll(this.cameraX, this.cameraY);
+
+                this.lastPointerX = pointer.x;
+                this.lastPointerY = pointer.y;
+            }
+        });
+
+        this.input.on("pointerup", () => {
+            this.isDragging = false;
+        });
     }
 
     private generateMap() {
@@ -54,7 +73,7 @@ export class MainScene extends Phaser.Scene {
 
                 if (x >= 45 && x <= 54 && y >= 45 && y <= 54) {
                     // Center 10x10 area - mostly grass with some obstacles
-                    terrainType = Math.random() < 0.85
+                    terrainType = Math.random() < 0.925
                         ? TerrainType.GRASS
                         : TerrainType.TREE_STICKS;
                 } else {
@@ -81,16 +100,15 @@ export class MainScene extends Phaser.Scene {
     private renderMap() {
         this.graphics.clear();
 
-        // Draw tiles
+        // Draw base tiles first
         for (let y = 0; y < MAP_CONFIG.height; y++) {
             for (let x = 0; x < MAP_CONFIG.width; x++) {
                 const tile = this.mapData[y][x];
                 const color = TERRAIN_COLORS[tile.type];
-
                 const pixelX = x * MAP_CONFIG.tileSize;
                 const pixelY = y * MAP_CONFIG.tileSize;
 
-                // Draw tile
+                // Draw tile base
                 this.graphics.lineStyle(1, 0x2c5530);
                 this.graphics.fillStyle(color);
                 this.graphics.fillRect(
@@ -106,6 +124,18 @@ export class MainScene extends Phaser.Scene {
                     MAP_CONFIG.tileSize,
                 );
 
+                // Add overlay for locked tiles (outside center area)
+                if (!(x >= 45 && x <= 54 && y >= 45 && y <= 54)) {
+                    // Semi-transparent dark overlay
+                    this.graphics.fillStyle(0x000000, 0.4);
+                    this.graphics.fillRect(
+                        pixelX,
+                        pixelY,
+                        MAP_CONFIG.tileSize,
+                        MAP_CONFIG.tileSize,
+                    );
+                }
+
                 // Add coordinates
                 this.add.text(
                     pixelX + 2,
@@ -113,7 +143,9 @@ export class MainScene extends Phaser.Scene {
                     `${x},${y}`,
                     {
                         fontSize: "8px",
-                        color: "#000000",
+                        color: !(x >= 45 && x <= 54 && y >= 45 && y <= 54)
+                            ? "#666666"
+                            : "#000000",
                     },
                 );
             }
@@ -133,44 +165,6 @@ export class MainScene extends Phaser.Scene {
         );
     }
 
-    update(time: number, delta: number) {
-        const speed = 5;
-        let moved = false;
-
-        if (this.cursors.left.isDown) {
-            this.cameraX -= speed;
-            moved = true;
-        }
-        if (this.cursors.right.isDown) {
-            this.cameraX += speed;
-            moved = true;
-        }
-        if (this.cursors.up.isDown) {
-            this.cameraY -= speed;
-            moved = true;
-        }
-        if (this.cursors.down.isDown) {
-            this.cameraY += speed;
-            moved = true;
-        }
-
-        if (moved) {
-            // Calculate bounds considering zoom
-            const zoom = this.cameras.main.zoom;
-            const maxX = (MAP_CONFIG.width * MAP_CONFIG.tileSize * zoom) -
-                this.cameras.main.width;
-            const maxY = (MAP_CONFIG.height * MAP_CONFIG.tileSize * zoom) -
-                this.cameras.main.height;
-
-            // Clamp camera positions within bounds
-            this.cameraX = Phaser.Math.Clamp(this.cameraX, 0, maxX);
-            this.cameraY = Phaser.Math.Clamp(this.cameraY, 0, maxY);
-
-            // Set new camera position
-            this.cameras.main.setScroll(this.cameraX, this.cameraY);
-        }
-    }
-
     private setupCamera() {
         // Set world bounds
         this.cameras.main.setBounds(
@@ -180,8 +174,7 @@ export class MainScene extends Phaser.Scene {
             MAP_CONFIG.height * MAP_CONFIG.tileSize,
         );
 
-        // Set initial zoom (between minZoom and maxZoom from MAP_CONFIG)
-        this.cameras.main.setZoom(1); // Or any value between MAP_CONFIG.minZoom and maxZoom
+        this.cameras.main.setZoom(MAP_CONFIG.zoom);
 
         // Center on the middle of the map
         const centerX = (MAP_CONFIG.width * MAP_CONFIG.tileSize) / 2;
