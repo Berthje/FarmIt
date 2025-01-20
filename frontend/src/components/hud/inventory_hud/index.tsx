@@ -27,10 +27,13 @@ export const InventoryHUD: React.FC<InventoryHUDProps> = ({ items }) => {
     ) => {
         if (!item) return;
 
-        // Create custom drag image
         const dragImage = document.createElement("div");
         dragImage.className =
-            "w-14 h-14 bg-green-800 rounded-lg border-2 border-yellow-400 opacity-50";
+            "w-14 h-14 bg-green-800 rounded-lg border-2 border-yellow-400 opacity-70 fixed -left-[9999px] flex items-center justify-center";
+        const icon = document.createElement("img");
+        icon.src = item.icon;
+        icon.className = "w-10 h-10";
+        dragImage.appendChild(icon);
         document.body.appendChild(dragImage);
 
         e.dataTransfer.setDragImage(dragImage, 28, 28);
