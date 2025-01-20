@@ -30,6 +30,25 @@ async function seedTools() {
   `);
 }
 
+async function seedToolbarSlots() {
+	await query(`
+    INSERT INTO toolbar_slots
+      (user_id, slot_index, item_type, item_id, created_at, updated_at)
+    VALUES
+      (1, 0, 'TOOL', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+      (1, 1, 'SEED', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+      (1, 2, 'TOOL', 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+      (2, 0, 'SEED', 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+      (2, 1, 'TOOL', 3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+      (2, 2, 'SEED', 3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    ON CONFLICT (user_id, slot_index)
+    DO UPDATE SET
+      item_type = EXCLUDED.item_type,
+      item_id = EXCLUDED.item_id,
+      updated_at = CURRENT_TIMESTAMP
+  `);
+}
+
 async function seedPlantables() {
 	await query(`
     INSERT INTO plantables (
@@ -222,6 +241,7 @@ export async function seedDatabase() {
 	await seedMarketListings();
 	await seedAuctions();
 	await seedAuctionBids();
+	await seedToolbarSlots();
 
 	console.log("Database seeded with initial data!");
 }
