@@ -30,7 +30,7 @@ export const GAME_ASSETS = {
         },
         TERRAIN: {
             GRASS: "/assets/sprites/tiles/terrain/grass.png",
-            // TREE_STICKS: "/assets/sprites/tiles/terrain/tree_sticks.png",
+            TREE_STICKS: "/assets/sprites/tiles/terrain/grass_with_sticks.png",
             // TREE_RESIDUE: "/assets/sprites/tiles/terrain/tree_residue.png",
             // STONE: "/assets/sprites/tiles/terrain/stone.png",
         },

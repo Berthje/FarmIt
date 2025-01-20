@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { MAP_CONFIG } from "../config/mapConfig";
 import { TERRAIN_COLORS, TerrainType, Tile } from "../types/map_types";
+import { GAME_ASSETS } from "../../../assets/constants";
 
 export class MainScene extends Phaser.Scene {
     private mapData: Tile[][] = [];
@@ -13,6 +14,11 @@ export class MainScene extends Phaser.Scene {
 
     constructor() {
         super({ key: "MainScene" });
+    }
+
+    preload() {
+        this.load.image("grass", GAME_ASSETS.SPRITES.TERRAIN.GRASS);
+        this.load.image("tree_sticks", GAME_ASSETS.SPRITES.TERRAIN.TREE_STICKS);
     }
 
     create() {
@@ -98,36 +104,31 @@ export class MainScene extends Phaser.Scene {
     }
 
     private renderMap() {
+        // Clear existing graphics
         this.graphics.clear();
 
-        // Draw base tiles first
+        // First pass: Render base terrain and textures
         for (let y = 0; y < MAP_CONFIG.height; y++) {
             for (let x = 0; x < MAP_CONFIG.width; x++) {
                 const tile = this.mapData[y][x];
-                const color = TERRAIN_COLORS[tile.type];
                 const pixelX = x * MAP_CONFIG.tileSize;
                 const pixelY = y * MAP_CONFIG.tileSize;
 
-                // Draw tile base
-                this.graphics.lineStyle(1, 0x2c5530);
-                this.graphics.fillStyle(color);
-                this.graphics.fillRect(
-                    pixelX,
-                    pixelY,
-                    MAP_CONFIG.tileSize,
-                    MAP_CONFIG.tileSize,
-                );
-                this.graphics.strokeRect(
-                    pixelX,
-                    pixelY,
-                    MAP_CONFIG.tileSize,
-                    MAP_CONFIG.tileSize,
-                );
-
-                // Add overlay for locked tiles (outside center area)
-                if (!(x >= 45 && x <= 54 && y >= 45 && y <= 54)) {
-                    // Semi-transparent dark overlay
-                    this.graphics.fillStyle(0x000000, 0.4);
+                // Render terrain textures and colors
+                if (tile.type === TerrainType.GRASS) {
+                    this.add.image(
+                        pixelX + MAP_CONFIG.tileSize / 2,
+                        pixelY + MAP_CONFIG.tileSize / 2,
+                        "grass",
+                    ).setDisplaySize(MAP_CONFIG.tileSize, MAP_CONFIG.tileSize);
+                } else if (tile.type === TerrainType.TREE_STICKS) {
+                    this.add.image(
+                        pixelX + MAP_CONFIG.tileSize / 2,
+                        pixelY + MAP_CONFIG.tileSize / 2,
+                        "tree_sticks",
+                    ).setDisplaySize(MAP_CONFIG.tileSize, MAP_CONFIG.tileSize);
+                } else {
+                    this.graphics.fillStyle(TERRAIN_COLORS[tile.type], 0.6);
                     this.graphics.fillRect(
                         pixelX,
                         pixelY,
@@ -135,34 +136,8 @@ export class MainScene extends Phaser.Scene {
                         MAP_CONFIG.tileSize,
                     );
                 }
-
-                // // Add coordinates
-                // this.add.text(
-                //     pixelX + 2,
-                //     pixelY + 2,
-                //     `${x},${y}`,
-                //     {
-                //         fontSize: "8px",
-                //         color: !(x >= 45 && x <= 54 && y >= 45 && y <= 54)
-                //             ? "#666666"
-                //             : "#000000",
-                //     },
-                // );
             }
         }
-
-        // Highlight center area
-        const centerStartX = 45 * MAP_CONFIG.tileSize;
-        const centerStartY = 45 * MAP_CONFIG.tileSize;
-        const centerSize = 10 * MAP_CONFIG.tileSize;
-
-        this.graphics.lineStyle(2, TERRAIN_COLORS.CENTER_AREA);
-        this.graphics.strokeRect(
-            centerStartX,
-            centerStartY,
-            centerSize,
-            centerSize,
-        );
     }
 
     private setupCamera() {
@@ -186,8 +161,5 @@ export class MainScene extends Phaser.Scene {
 
         // Set initial scroll position
         this.cameras.main.setScroll(this.cameraX, this.cameraY);
-
-        // Set background color for debug purposes
-        this.cameras.main.setBackgroundColor(0x002244);
     }
 }
