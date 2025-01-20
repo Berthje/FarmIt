@@ -23,7 +23,7 @@ async function seedTools() {
 	await query(`
     INSERT INTO tools (name, durability, rarity, base_price) VALUES
     ('Basic Hoe', 100, 'common', 50),
-    ('Watering Can', 150, 'common', 75),
+    ('Watering Can', 150, 'common', 75)
     ON CONFLICT DO NOTHING
   `);
 }
