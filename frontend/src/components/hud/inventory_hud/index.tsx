@@ -56,16 +56,14 @@ export const InventoryHUD: React.FC<InventoryHUDProps> = ({ items }) => {
         const itemData = JSON.parse(e.dataTransfer.getData("text/plain"));
         const newToolbar = [...toolbarItems];
 
-        // If dragging from toolbar slot to another toolbar slot
         if (itemData.fromSlot !== undefined) {
             const temp = newToolbar[slotIndex];
             newToolbar[slotIndex] = itemData;
             newToolbar[itemData.fromSlot] = temp;
             delete newToolbar[slotIndex].fromSlot;
         }
-        // If dragging from inventory
+
         else {
-            // Check if item already exists in toolbar
             const existingSlotIndex = toolbarItems.findIndex(
                 (item) => item?.id === itemData.id
             );
