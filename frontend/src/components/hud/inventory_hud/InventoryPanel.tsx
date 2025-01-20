@@ -12,19 +12,37 @@ interface InventoryPanelProps {
         category?: Category;
         name?: string;
     }>;
+    onAddToToolbar: (item: any) => void;
+    toolbarItems: Array<any>;
 }
 
 export const InventoryPanel: React.FC<InventoryPanelProps> = ({
     onClose,
     items,
+    onAddToToolbar,
+    toolbarItems,
 }) => {
     const [activeCategory, setActiveCategory] = useState<Category>("seeds");
+    const [isDragging, setIsDragging] = useState<number | null>(null);
 
     const categories: { id: Category; label: string; icon: string }[] = [
         { id: "seeds", label: "Seeds", icon: GAME_ASSETS.ICONS.UI.MUSIC },
         { id: "tools", label: "Tools", icon: GAME_ASSETS.ICONS.UI.MUSIC },
         { id: "crops", label: "Crops", icon: GAME_ASSETS.ICONS.UI.MUSIC },
     ];
+
+    const handleDragStart = (e: React.DragEvent, item: any) => {
+        setIsDragging(item.id);
+        e.dataTransfer.setData("text/plain", JSON.stringify(item));
+    };
+
+    const handleDragEnd = () => {
+        setIsDragging(null);
+    };
+
+    const isItemInToolbar = (itemId: number) => {
+        return toolbarItems.some((item) => item?.id === itemId);
+    };
 
     const filteredItems = items.filter(
         (item) => item.category === activeCategory
@@ -85,13 +103,26 @@ export const InventoryPanel: React.FC<InventoryPanelProps> = ({
                     {filteredItems.map((item) => (
                         <div
                             key={item.id}
-                            className="relative group aspect-square bg-green-700 p-2 rounded-lg border-2 border-green-600 hover:border-yellow-400 transition-all hover:scale-105"
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, item)}
+                            onDragEnd={handleDragEnd}
+                            className={`
+                            relative group aspect-square bg-green-700 p-2 rounded-lg
+                            border-2 ${
+                                isItemInToolbar(item.id)
+                                    ? "border-blue-400"
+                                    : "border-green-600"
+                            }
+                            hover:border-yellow-400 transition-all hover:scale-105
+                            cursor-grab active:cursor-grabbing
+                            ${isDragging === item.id ? "opacity-50" : "opacity-100"}
+                        `}
                         >
                             <div className="flex items-center justify-center h-full">
                                 <img
                                     src={item.icon}
                                     alt={item.name ?? "Item"}
-                                    className="w-16 h-16 object-contain"
+                                    className="w-16 h-16 object-contain pointer-events-none"
                                 />
                             </div>
 
