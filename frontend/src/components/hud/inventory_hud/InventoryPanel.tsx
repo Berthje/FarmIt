@@ -81,21 +81,24 @@ export const InventoryPanel: React.FC<InventoryPanelProps> = ({
                 </div>
 
                 {/* Items Grid */}
-                <div className="grid grid-cols-8 gap-2 p-4 h-[calc(100%-140px)] overflow-y-auto">
+                <div className="grid grid-cols-8 gap-3 p-4 h-[calc(100%-140px)] overflow-y-auto">
                     {filteredItems.map((item) => (
                         <div
                             key={item.id}
-                            className="relative group bg-green-700 p-2 rounded-lg border-2 border-green-600 hover:border-yellow-400 transition-all hover:scale-105"
+                            className="relative group aspect-square bg-green-700 p-2 rounded-lg border-2 border-green-600 hover:border-yellow-400 transition-all hover:scale-105"
                         >
-                            <img
-                                src={item.icon}
-                                alt={item.name ?? "Item"}
-                                className="w-full h-auto"
-                            />
+                            <div className="flex items-center justify-center h-full">
+                                <img
+                                    src={item.icon}
+                                    alt={item.name ?? "Item"}
+                                    className="w-16 h-16 object-contain"
+                                />
+                            </div>
+
                             {item.quantity !== undefined && (
                                 <div className="absolute bottom-1 right-1 bg-green-900/80 px-1.5 rounded-md">
                                     <span className="text-xs font-bold text-yellow-400">
-                                        {item.quantity.toLocaleString()}
+                                        {item.quantity?.toLocaleString()}
                                     </span>
                                 </div>
                             )}
