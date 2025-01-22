@@ -9,6 +9,8 @@ export class MapScene extends Scene {
     private map!: Phaser.Tilemaps.Tilemap;
     private grassLayer!: Phaser.Tilemaps.TilemapLayer;
     private treeSticksLayer!: Phaser.Tilemaps.TilemapLayer;
+    private treeResidueLayer!: Phaser.Tilemaps.TilemapLayer;
+    private stoneLayer!: Phaser.Tilemaps.TilemapLayer;
     private lockedOverlay!: Phaser.GameObjects.Graphics;
 
     constructor() {
@@ -94,6 +96,11 @@ export class MapScene extends Scene {
             "treeSticksTile",
             GAME_ASSETS.SPRITES.TERRAIN.TREE_STICKS
         );
+        this.load.image(
+            "treeResidueTile",
+            GAME_ASSETS.SPRITES.TERRAIN.TREE_RESIDUE
+        );
+        this.load.image("stoneTile", GAME_ASSETS.SPRITES.TERRAIN.STONE);
     }
 
     create(): void {
@@ -107,8 +114,10 @@ export class MapScene extends Scene {
 
         const grassTileset = this.map.addTilesetImage("grassTile");
         const treeSticksSet = this.map.addTilesetImage("treeSticksTile");
+        const treeResidueSet = this.map.addTilesetImage("treeResidueTile");
+        const stoneSet = this.map.addTilesetImage("stoneTile");
 
-        if (!grassTileset || !treeSticksSet) {
+        if (!grassTileset || !treeSticksSet || !treeResidueSet || !stoneSet) {
             console.error("Failed to create tilesets");
             return;
         }
@@ -119,11 +128,11 @@ export class MapScene extends Scene {
             "treeSticks",
             treeSticksSet
         )!;
-
-        if (!this.grassLayer || !this.treeSticksLayer) {
-            console.error("Failed to create layers");
-            return;
-        }
+        this.treeResidueLayer = this.map.createBlankLayer(
+            "treeResidue",
+            treeResidueSet
+        )!;
+        this.stoneLayer = this.map.createBlankLayer("stone", stoneSet)!;
 
         // Fill grass layer completely
         this.grassLayer.fill(0);
@@ -135,13 +144,16 @@ export class MapScene extends Scene {
         for (let x = 0; x < MAP_SIZE; x++) {
             for (let y = 0; y < MAP_SIZE; y++) {
                 const isStartingArea = x >= 45 && x <= 54 && y >= 45 && y <= 54;
+                const random = Math.random();
 
-                // Add base grass everywhere
-                this.grassLayer.putTileAt(0, x, y);
-
-                // Add random tree sticks
-                if (Math.random() > 0.85) {
-                    this.treeSticksLayer.putTileAt(0, x, y);
+                if (!isStartingArea) {
+                    if (random > 0.925) {
+                        this.stoneLayer.putTileAt(0, x, y);
+                    } else if (random > 0.8) {
+                        this.treeResidueLayer.putTileAt(0, x, y);
+                    } else if (random > 0.65) {
+                        this.treeSticksLayer.putTileAt(0, x, y);
+                    }
                 }
 
                 // Add dark overlay for locked tiles
@@ -156,6 +168,12 @@ export class MapScene extends Scene {
                 }
             }
         }
+
+        this.grassLayer.setDepth(0);
+        this.treeSticksLayer.setDepth(1);
+        this.treeResidueLayer.setDepth(1);
+        this.stoneLayer.setDepth(1);
+        this.lockedOverlay.setDepth(100);
 
         // Setup camera
         this.cameras.main.setBounds(0, 0, TOTAL_SIZE, TOTAL_SIZE);
