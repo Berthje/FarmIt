@@ -6,12 +6,10 @@ const TILE_SIZE = 32;
 const TOTAL_SIZE = MAP_SIZE * TILE_SIZE;
 
 export class MapScene extends Scene {
-    private isDragging: boolean = false;
-    private dragStartX: number = 0;
-    private dragStartY: number = 0;
     private map!: Phaser.Tilemaps.Tilemap;
     private grassLayer!: Phaser.Tilemaps.TilemapLayer;
     private treeSticksLayer!: Phaser.Tilemaps.TilemapLayer;
+    private lockedOverlay!: Phaser.GameObjects.Graphics;
 
     constructor() {
         super({ key: "MapScene" });
@@ -130,11 +128,31 @@ export class MapScene extends Scene {
         // Fill grass layer completely
         this.grassLayer.fill(0);
 
+        this.lockedOverlay = this.add.graphics();
+        this.lockedOverlay.setDepth(100);
+
         // Add tree sticks randomly
         for (let x = 0; x < MAP_SIZE; x++) {
             for (let y = 0; y < MAP_SIZE; y++) {
+                const isStartingArea = x >= 45 && x <= 54 && y >= 45 && y <= 54;
+
+                // Add base grass everywhere
+                this.grassLayer.putTileAt(0, x, y);
+
+                // Add random tree sticks
                 if (Math.random() > 0.85) {
                     this.treeSticksLayer.putTileAt(0, x, y);
+                }
+
+                // Add dark overlay for locked tiles
+                if (!isStartingArea) {
+                    this.lockedOverlay.fillStyle(0x000000, 0.5);
+                    this.lockedOverlay.fillRect(
+                        x * TILE_SIZE,
+                        y * TILE_SIZE,
+                        TILE_SIZE,
+                        TILE_SIZE
+                    );
                 }
             }
         }
