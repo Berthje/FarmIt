@@ -20,6 +20,16 @@ export const InventoryHUD: React.FC<InventoryHUDProps> = ({ items }) => {
     );
     const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
 
+    const handleSlotRightClick = (e: React.MouseEvent, index: number) => {
+        e.preventDefault();
+
+        if (toolbarItems[index]) {
+            const newToolbar = [...toolbarItems];
+            newToolbar[index] = null;
+            setToolbarItems(newToolbar);
+        }
+    };
+
     const handleToolbarDragStart = (
         e: React.DragEvent,
         item: any,
@@ -61,9 +71,7 @@ export const InventoryHUD: React.FC<InventoryHUDProps> = ({ items }) => {
             newToolbar[slotIndex] = itemData;
             newToolbar[itemData.fromSlot] = temp;
             delete newToolbar[slotIndex].fromSlot;
-        }
-
-        else {
+        } else {
             const existingSlotIndex = toolbarItems.findIndex(
                 (item) => item?.id === itemData.id
             );
@@ -121,7 +129,14 @@ export const InventoryHUD: React.FC<InventoryHUDProps> = ({ items }) => {
                             }
                             onDragOver={(e) => handleDragOver(e, index)}
                             onDrop={(e) => handleDrop(e, index)}
-                            className="cursor-grab active:cursor-grabbing"
+                            onContextMenu={(e) =>
+                                handleSlotRightClick(e, index)
+                            }
+                            className={`
+                                cursor-grab active:cursor-grabbing
+                                group relative
+                                ${item ? 'hover:after:content-["Right-click_to_remove"] hover:after:absolute hover:after:-top-8 hover:after:left-1/2 hover:after:-translate-x-1/2 hover:after:bg-green-900 hover:after:text-yellow-400 hover:after:px-2 hover:after:py-1 hover:after:rounded hover:after:text-xs hover:after:whitespace-nowrap hover:after:border hover:after:border-green-700' : ""}
+                            `}
                         >
                             <InventorySlot
                                 item={item}
