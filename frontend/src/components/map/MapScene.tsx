@@ -4,29 +4,17 @@ import { GAME_ASSETS } from "../../assets/constants";
 const MAP_SIZE = 100;
 const TILE_SIZE = 32;
 const TOTAL_SIZE = MAP_SIZE * TILE_SIZE;
-const MIN_ZOOM = 1;
-const MAX_ZOOM = 2;
-const ZOOM_SPEED = 0.2;
 
 export class MapScene extends Scene {
     private isDragging: boolean = false;
     private dragStartX: number = 0;
     private dragStartY: number = 0;
     private map!: Phaser.Tilemaps.Tilemap;
-    private layer!: Phaser.Tilemaps.TilemapLayer;
+    private grassLayer!: Phaser.Tilemaps.TilemapLayer;
+    private treeSticksLayer!: Phaser.Tilemaps.TilemapLayer;
 
     constructor() {
         super({ key: "MapScene" });
-    }
-
-    private createGrassTexture(): void {
-        const graphics = this.add.graphics();
-        graphics.fillStyle(0x4caf50);
-        graphics.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
-        graphics.lineStyle(1, 0x45a045);
-        graphics.strokeRect(0, 0, TILE_SIZE, TILE_SIZE);
-        graphics.generateTexture("grassTile", TILE_SIZE, TILE_SIZE);
-        graphics.destroy();
     }
 
     private setupDragControls(): void {
@@ -61,6 +49,10 @@ export class MapScene extends Scene {
     }
 
     private setupZoomControls(): void {
+        const MIN_ZOOM = 1;
+        const MAX_ZOOM = 2;
+        const ZOOM_SPEED = 0.2;
+
         this.input.on(
             "wheel",
             (
@@ -69,29 +61,20 @@ export class MapScene extends Scene {
                 deltaX: number,
                 deltaY: number
             ) => {
-                // Get current zoom
                 const currentZoom = this.cameras.main.zoom;
-
-                // Calculate new zoom
                 const newZoom = currentZoom - (deltaY * ZOOM_SPEED) / 100;
-
-                // Clamp zoom between min and max values
                 const clampedZoom = Phaser.Math.Clamp(
                     newZoom,
                     MIN_ZOOM,
                     MAX_ZOOM
                 );
-
-                // Get pointer position in world space before zoom
                 const worldPoint = this.cameras.main.getWorldPoint(
                     pointer.x,
                     pointer.y
                 );
 
-                // Set new zoom
-                this.cameras.main.zoom = clampedZoom;
+                this.cameras.main.setZoom(clampedZoom);
 
-                // Update camera position to zoom towards cursor
                 const newWorldPoint = this.cameras.main.getWorldPoint(
                     pointer.x,
                     pointer.y
@@ -105,6 +88,10 @@ export class MapScene extends Scene {
 
     preload(): void {
         this.load.image("grassTile", GAME_ASSETS.SPRITES.TERRAIN.GRASS);
+        this.load.image(
+            "treeSticksTile",
+            GAME_ASSETS.SPRITES.TERRAIN.TREE_STICKS
+        );
     }
 
     create(): void {
@@ -116,21 +103,37 @@ export class MapScene extends Scene {
             height: MAP_SIZE,
         });
 
-        // Create and add tileset
-        const tileset = this.map.addTilesetImage("grassTile");
-        if (!tileset) {
-            console.error("Failed to create tileset");
+        const grassTileset = this.map.addTilesetImage("grassTile");
+        const treeSticksSet = this.map.addTilesetImage("treeSticksTile");
+
+        if (!grassTileset || !treeSticksSet) {
+            console.error("Failed to create tilesets");
             return;
         }
 
-        // Create layer and fill with grass
-        const layer = this.map.createBlankLayer("ground", tileset);
-        if (!layer) {
-            console.error("Failed to create layer");
+        // Create separate layers
+        this.grassLayer = this.map.createBlankLayer("ground", grassTileset)!;
+        this.treeSticksLayer = this.map.createBlankLayer(
+            "treeSticks",
+            treeSticksSet
+        )!;
+
+        if (!this.grassLayer || !this.treeSticksLayer) {
+            console.error("Failed to create layers");
             return;
         }
-        this.layer = layer;
-        this.layer.fill(0);
+
+        // Fill grass layer completely
+        this.grassLayer.fill(0);
+
+        // Add tree sticks randomly
+        for (let x = 0; x < MAP_SIZE; x++) {
+            for (let y = 0; y < MAP_SIZE; y++) {
+                if (Math.random() > 0.85) {
+                    this.treeSticksLayer.putTileAt(0, x, y);
+                }
+            }
+        }
 
         // Setup camera
         this.cameras.main.setBounds(0, 0, TOTAL_SIZE, TOTAL_SIZE);
