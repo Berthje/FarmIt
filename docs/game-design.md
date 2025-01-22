@@ -321,7 +321,7 @@ endless fun and growth opportunities.
 
 - **Framework**: React.js or Vue.js for responsive UI.
 
-- **Rendering**: Pixi.js for efficient and interactive 2D visuals.
+- **Rendering**: Phaser.js for efficient and interactive 2D visuals.
 
 ### **6.2 Backend**
 
