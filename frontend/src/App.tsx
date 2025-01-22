@@ -15,7 +15,7 @@ const App: React.FC = () => {
     return (
         <LoadingScreen>
             <div className="min-h-screen bg-black">
-                <MapRenderer />
+                <MapRenderer/>
                 <GameHUD playerData={playerData} />
             </div>
         </LoadingScreen>
