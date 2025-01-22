@@ -18,33 +18,31 @@ export class MapScene extends Scene {
     }
 
     private setupDragControls(): void {
+        let isDragging = false;
+        let lastX = 0;
+        let lastY = 0;
+
         this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
-            this.isDragging = true;
-            this.dragStartX = pointer.x + this.cameras.main.scrollX;
-            this.dragStartY = pointer.y + this.cameras.main.scrollY;
+            isDragging = true;
+            lastX = pointer.x;
+            lastY = pointer.y;
         });
 
         this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
-            if (!this.isDragging) return;
+            if (!isDragging) return;
 
-            const dragSpeed = 1 / this.cameras.main.zoom; // Adjust drag speed based on zoom
-            const newX = this.dragStartX - pointer.x * dragSpeed;
-            const newY = this.dragStartY - pointer.y * dragSpeed;
+            const deltaX = pointer.x - lastX;
+            const deltaY = pointer.y - lastY;
 
-            this.cameras.main.scrollX = Phaser.Math.Clamp(
-                newX,
-                0,
-                TOTAL_SIZE - this.cameras.main.width / this.cameras.main.zoom
-            );
-            this.cameras.main.scrollY = Phaser.Math.Clamp(
-                newY,
-                0,
-                TOTAL_SIZE - this.cameras.main.height / this.cameras.main.zoom
-            );
+            this.cameras.main.scrollX -= deltaX / this.cameras.main.zoom;
+            this.cameras.main.scrollY -= deltaY / this.cameras.main.zoom;
+
+            lastX = pointer.x;
+            lastY = pointer.y;
         });
 
         this.input.on("pointerup", () => {
-            this.isDragging = false;
+            isDragging = false;
         });
     }
 
@@ -53,37 +51,36 @@ export class MapScene extends Scene {
         const MAX_ZOOM = 2;
         const ZOOM_SPEED = 0.2;
 
-        this.input.on(
-            "wheel",
-            (
-                pointer: Phaser.Input.Pointer,
-                gameObjects: any,
-                deltaX: number,
-                deltaY: number
-            ) => {
-                const currentZoom = this.cameras.main.zoom;
-                const newZoom = currentZoom - (deltaY * ZOOM_SPEED) / 100;
-                const clampedZoom = Phaser.Math.Clamp(
-                    newZoom,
-                    MIN_ZOOM,
-                    MAX_ZOOM
-                );
-                const worldPoint = this.cameras.main.getWorldPoint(
-                    pointer.x,
-                    pointer.y
-                );
+        this.input.on("wheel", (deltaY: number) => {
+            console.log("Zoom event:", {
+                deltaY,
+                currentZoom: this.cameras.main.zoom,
+            });
 
-                this.cameras.main.setZoom(clampedZoom);
+            // Calculate new zoom
+            const zoomDelta = deltaY > 0 ? -ZOOM_SPEED : ZOOM_SPEED;
+            const newZoom = this.cameras.main.zoom + zoomDelta;
+            const clampedZoom = Phaser.Math.Clamp(newZoom, MIN_ZOOM, MAX_ZOOM);
 
-                const newWorldPoint = this.cameras.main.getWorldPoint(
-                    pointer.x,
-                    pointer.y
-                );
+            // Get center point before zoom
+            const centerX = this.cameras.main.midPoint.x;
+            const centerY = this.cameras.main.midPoint.y;
+            const worldPoint = this.cameras.main.getWorldPoint(
+                centerX,
+                centerY
+            );
 
-                this.cameras.main.scrollX += worldPoint.x - newWorldPoint.x;
-                this.cameras.main.scrollY += worldPoint.y - newWorldPoint.y;
-            }
-        );
+            // Apply zoom
+            this.cameras.main.zoom = clampedZoom;
+
+            // Maintain center point
+            const newWorldPoint = this.cameras.main.getWorldPoint(
+                centerX,
+                centerY
+            );
+            this.cameras.main.scrollX += worldPoint.x - newWorldPoint.x;
+            this.cameras.main.scrollY += worldPoint.y - newWorldPoint.y;
+        });
     }
 
     preload(): void {
