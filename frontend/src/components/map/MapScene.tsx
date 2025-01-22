@@ -1,4 +1,5 @@
 import { Scene } from "phaser";
+import { GAME_ASSETS } from "../../assets/constants";
 
 const MAP_SIZE = 100;
 const TILE_SIZE = 32;
@@ -102,9 +103,11 @@ export class MapScene extends Scene {
         );
     }
 
-    create(): void {
-        this.createGrassTexture();
+    preload(): void {
+        this.load.image("grassTile", GAME_ASSETS.SPRITES.TERRAIN.GRASS);
+    }
 
+    create(): void {
         // Initialize tilemap
         this.map = this.make.tilemap({
             tileWidth: TILE_SIZE,
