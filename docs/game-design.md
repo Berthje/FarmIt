@@ -44,6 +44,7 @@ endless fun and growth opportunities.
     maximizing crop yield or creating space for buildings and decorations.
 
 #### **Growth Stages System**
+
 - **Stage 0 (Seed)**:
   - Freshly planted
   - Requires initial watering
@@ -76,6 +77,7 @@ endless fun and growth opportunities.
   - 90-100% of growth time
 
 #### **Plant Properties**
+
 - Water needs (low/medium/high)
 - Seasonal growth modifiers
 - Growth time
@@ -84,6 +86,7 @@ endless fun and growth opportunities.
 - Regrowth capability
 
 #### **Seasonal Effects**
+
 - **Spring**: Ideal for early crops
 - **Summer**: Heat-resistant plants thrive
 - **Fall**: Root vegetables peak

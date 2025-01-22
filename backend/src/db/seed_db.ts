@@ -1,7 +1,7 @@
 import { query } from "./db.ts";
 
 async function seedUsers() {
-	await query(`
+  await query(`
     INSERT INTO users (username, email, password_hash) VALUES
     ('farmer_john', 'john@farm.com', 'hash1'),
     ('crop_master', 'master@farm.com', 'hash2'),
@@ -12,7 +12,7 @@ async function seedUsers() {
 }
 
 async function seedPlayerStats() {
-	await query(`
+  await query(`
     INSERT INTO player_stats (user_id, level, experience, coins)
     SELECT id, 1, 0, 1000 FROM users
     ON CONFLICT DO NOTHING
@@ -20,7 +20,7 @@ async function seedPlayerStats() {
 }
 
 async function seedTools() {
-	await query(`
+  await query(`
     INSERT INTO tools (name, durability, rarity, base_price) VALUES
     ('Basic Hoe', 100, 'common', 50),
     ('Watering Can', 150, 'common', 75)
@@ -29,7 +29,7 @@ async function seedTools() {
 }
 
 async function seedToolbarSlots() {
-	await query(`
+  await query(`
     WITH valid_tools AS (
       SELECT id FROM tools
     ),
@@ -73,7 +73,7 @@ async function seedToolbarSlots() {
 }
 
 async function seedPlantables() {
-	await query(`
+  await query(`
     INSERT INTO plantables (
       name,
       category,
@@ -101,7 +101,7 @@ async function seedPlantables() {
 }
 
 async function seedHarvestedCrops() {
-	await query(`
+  await query(`
     INSERT INTO harvested_crops (name, plantable_id, base_price)
     SELECT
       REPLACE(name, ' Seeds', ''),
@@ -113,7 +113,7 @@ async function seedHarvestedCrops() {
 }
 
 async function seedPlantedCrops() {
-	await query(`
+  await query(`
     INSERT INTO planted_crops
     (tile_id, plantable_id, planted_at, last_watered_at, growth_stage, health, properties)
     VALUES
@@ -140,7 +140,7 @@ async function seedPlantedCrops() {
 }
 
 async function seedInventory() {
-	await query(`
+  await query(`
     INSERT INTO inventory (user_id, item_type, item_id, quantity)
     SELECT
       u.id,
@@ -155,7 +155,7 @@ async function seedInventory() {
 }
 
 async function seedMarketListings() {
-	await query(`
+  await query(`
     INSERT INTO market_listings (seller_id, item_type, item_id, quantity, price_per_unit)
     SELECT
       u.id,
@@ -172,7 +172,7 @@ async function seedMarketListings() {
 }
 
 async function seedAuctions() {
-	await query(`
+  await query(`
     WITH durations AS (
       SELECT unnest(ARRAY[
         INTERVAL '8 hours',
@@ -222,7 +222,7 @@ async function seedAuctions() {
 }
 
 async function seedAuctionBids() {
-	await query(`
+  await query(`
     WITH RECURSIVE bid_sequence AS (
       SELECT 1 as seq
       UNION ALL
@@ -250,7 +250,7 @@ async function seedAuctionBids() {
     ON CONFLICT DO NOTHING
   `);
 
-	await query(`
+  await query(`
     UPDATE auctions a
     SET current_bid = (
       SELECT MAX(bid_amount)
@@ -265,19 +265,19 @@ async function seedAuctionBids() {
 }
 
 export async function seedDatabase() {
-	console.log("Seeding database...");
+  console.log("Seeding database...");
 
-	await seedUsers();
-	await seedPlayerStats();
-	await seedTools();
-	await seedPlantables();
-	await seedHarvestedCrops();
-	await seedPlantedCrops();
-	await seedInventory();
-	await seedMarketListings();
-	await seedAuctions();
-	await seedAuctionBids();
-	await seedToolbarSlots();
+  await seedUsers();
+  await seedPlayerStats();
+  await seedTools();
+  await seedPlantables();
+  await seedHarvestedCrops();
+  await seedPlantedCrops();
+  await seedInventory();
+  await seedMarketListings();
+  await seedAuctions();
+  await seedAuctionBids();
+  await seedToolbarSlots();
 
-	console.log("Database seeded with initial data!");
+  console.log("Database seeded with initial data!");
 }

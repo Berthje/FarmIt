@@ -51,36 +51,43 @@ export class MapScene extends Scene {
         const MAX_ZOOM = 2;
         const ZOOM_SPEED = 0.2;
 
-        this.input.on("wheel", (deltaY: number) => {
-            console.log("Zoom event:", {
-                deltaY,
-                currentZoom: this.cameras.main.zoom,
-            });
+        this.input.on(
+            "wheel",
+            (
+                pointer: Phaser.Input.Pointer,
+                gameObjects: any[],
+                deltaX: number,
+                deltaY: number
+            ) => {
+                // Get world position of pointer before zoom
+                const worldPoint = this.cameras.main.getWorldPoint(
+                    pointer.x,
+                    pointer.y
+                );
 
-            // Calculate new zoom
-            const zoomDelta = deltaY > 0 ? -ZOOM_SPEED : ZOOM_SPEED;
-            const newZoom = this.cameras.main.zoom + zoomDelta;
-            const clampedZoom = Phaser.Math.Clamp(newZoom, MIN_ZOOM, MAX_ZOOM);
+                // Calculate new zoom
+                const zoomDelta = deltaY > 0 ? -ZOOM_SPEED : ZOOM_SPEED;
+                const newZoom = this.cameras.main.zoom + zoomDelta;
+                const clampedZoom = Phaser.Math.Clamp(
+                    newZoom,
+                    MIN_ZOOM,
+                    MAX_ZOOM
+                );
 
-            // Get center point before zoom
-            const centerX = this.cameras.main.midPoint.x;
-            const centerY = this.cameras.main.midPoint.y;
-            const worldPoint = this.cameras.main.getWorldPoint(
-                centerX,
-                centerY
-            );
+                // Apply zoom
+                this.cameras.main.zoom = clampedZoom;
 
-            // Apply zoom
-            this.cameras.main.zoom = clampedZoom;
+                // Get new world position after zoom
+                const newWorldPoint = this.cameras.main.getWorldPoint(
+                    pointer.x,
+                    pointer.y
+                );
 
-            // Maintain center point
-            const newWorldPoint = this.cameras.main.getWorldPoint(
-                centerX,
-                centerY
-            );
-            this.cameras.main.scrollX += worldPoint.x - newWorldPoint.x;
-            this.cameras.main.scrollY += worldPoint.y - newWorldPoint.y;
-        });
+                // Adjust camera to maintain pointer position
+                this.cameras.main.scrollX += worldPoint.x - newWorldPoint.x;
+                this.cameras.main.scrollY += worldPoint.y - newWorldPoint.y;
+            }
+        );
     }
 
     preload(): void {
