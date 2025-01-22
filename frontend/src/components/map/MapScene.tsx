@@ -5,7 +5,7 @@ const TILE_SIZE = 32;
 const TOTAL_SIZE = MAP_SIZE * TILE_SIZE;
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 2;
-const ZOOM_SPEED = 0.1;
+const ZOOM_SPEED = 0.2;
 
 export class MapScene extends Scene {
     private isDragging: boolean = false;
