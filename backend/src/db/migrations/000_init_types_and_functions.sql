@@ -10,7 +10,7 @@ CREATE TYPE item_type_enum AS ENUM ('plantable', 'tool', 'harvested_crop');
 CREATE TYPE rarity_enum AS ENUM ('common', 'uncommon', 'rare', 'epic', 'legendary');
 CREATE TYPE season_enum AS ENUM ('spring', 'summer', 'fall', 'winter');
 CREATE TYPE plantable_category_enum AS ENUM ('vegetable', 'grain'); -- Future: 'tree', 'fruit', 'flower', 'magical'
-CREATE TYPE terrain_type_enum AS ENUM ('grass', 'stone', 'tree_sticks', 'tree_residue');
+CREATE TYPE terrain_type_enum AS ENUM ('grass', 'tree_sticks', 'tree_residue');
 
 -- Common validation functions
 CREATE OR REPLACE FUNCTION validate_item_exists(item_type item_type_enum, item_id integer)
@@ -80,8 +80,7 @@ BEGIN
         terrain := CASE
           WHEN random_value < 0.65 THEN 'grass'::terrain_type_enum
           WHEN random_value < 0.80 THEN 'tree_sticks'::terrain_type_enum
-          WHEN random_value < 0.925 THEN 'tree_residue'::terrain_type_enum
-          ELSE 'stone'::terrain_type_enum
+          ELSE 'tree_residue'::terrain_type_enum
         END;
       END IF;
 

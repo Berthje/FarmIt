@@ -10,7 +10,6 @@ export class MapScene extends Scene {
     private grassLayer!: Phaser.Tilemaps.TilemapLayer;
     private treeSticksLayer!: Phaser.Tilemaps.TilemapLayer;
     private treeResidueLayer!: Phaser.Tilemaps.TilemapLayer;
-    private stoneLayer!: Phaser.Tilemaps.TilemapLayer;
     private lockedOverlay!: Phaser.GameObjects.Graphics;
     private hoverGraphics!: Phaser.GameObjects.Graphics;
     private hoveredTile: { x: number; y: number } | null = null;
@@ -236,7 +235,6 @@ export class MapScene extends Scene {
             "treeResidueTile",
             GAME_ASSETS.SPRITES.TERRAIN.TREE_RESIDUE
         );
-        this.load.image("stoneTile", GAME_ASSETS.SPRITES.TERRAIN.STONE);
     }
 
     create(): void {
@@ -251,9 +249,8 @@ export class MapScene extends Scene {
         const grassTileset = this.map.addTilesetImage("grassTile");
         const treeSticksSet = this.map.addTilesetImage("treeSticksTile");
         const treeResidueSet = this.map.addTilesetImage("treeResidueTile");
-        const stoneSet = this.map.addTilesetImage("stoneTile");
 
-        if (!grassTileset || !treeSticksSet || !treeResidueSet || !stoneSet) {
+        if (!grassTileset || !treeSticksSet || !treeResidueSet) {
             console.error("Failed to create tilesets");
             return;
         }
@@ -268,7 +265,6 @@ export class MapScene extends Scene {
             "treeResidue",
             treeResidueSet
         )!;
-        this.stoneLayer = this.map.createBlankLayer("stone", stoneSet)!;
 
         // Fill grass layer completely
         this.grassLayer.fill(0);
@@ -284,8 +280,6 @@ export class MapScene extends Scene {
 
                 if (!isStartingArea) {
                     if (random > 0.925) {
-                        this.stoneLayer.putTileAt(0, x, y);
-                    } else if (random > 0.8) {
                         this.treeResidueLayer.putTileAt(0, x, y);
                     } else if (random > 0.65) {
                         this.treeSticksLayer.putTileAt(0, x, y);
@@ -308,7 +302,6 @@ export class MapScene extends Scene {
         this.grassLayer.setDepth(0);
         this.treeSticksLayer.setDepth(1);
         this.treeResidueLayer.setDepth(1);
-        this.stoneLayer.setDepth(1);
         this.lockedOverlay.setDepth(100);
 
         this.hoverGraphics = this.add.graphics();
