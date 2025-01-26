@@ -24,10 +24,26 @@ export class MapScene extends Scene {
         let lastX = 0;
         let lastY = 0;
 
+        this.game.canvas.addEventListener("contextmenu", (e) => {
+            e.preventDefault();
+        });
+
         this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
-            isDragging = true;
-            lastX = pointer.x;
-            lastY = pointer.y;
+            if (pointer.rightButtonDown()) {
+                isDragging = true;
+                lastX = pointer.x;
+                lastY = pointer.y;
+            } else if (pointer.leftButtonDown()) {
+                const worldPoint = this.cameras.main.getWorldPoint(
+                    pointer.x,
+                    pointer.y
+                );
+                const tileX = Math.floor(worldPoint.x / TILE_SIZE);
+                const tileY = Math.floor(worldPoint.y / TILE_SIZE);
+
+                console.log(`Clicked tile at: x=${tileX}, y=${tileY}`);
+                this.events.emit("tileClicked", { x: tileX, y: tileY });
+            }
         });
 
         this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
