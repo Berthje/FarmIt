@@ -89,12 +89,14 @@
 - `created_at`: TIMESTAMP (bid time)
 
 #### worlds
+
 - `id`: SERIAL PRIMARY KEY
 - `user_id`: INTEGER FK (references users)
 - `created_at`: TIMESTAMP WITH TIME ZONE
 - `last_visited`: TIMESTAMP WITH TIME ZONE
 
 #### world_tiles
+
 - `id`: SERIAL PRIMARY KEY
 - `world_id`: INTEGER FK (references worlds)
 - `x_coord`: INTEGER NOT NULL
@@ -103,6 +105,7 @@
 - `terrain_type`: VARCHAR(50) DEFAULT 'grass'
 
 #### plantables
+
 - `id`: SERIAL PRIMARY KEY
 - `name`: VARCHAR(50) (plant name)
 - `category`: plantable_category_enum
@@ -117,6 +120,7 @@
 - `properties`: JSONB
 
 #### planted_crops
+
 - `id`: SERIAL PRIMARY KEY
 - `tile_id`: INTEGER FK (references world_tiles)
 - `plantable_id`: INTEGER FK (references plantables)
@@ -127,6 +131,7 @@
 - `properties`: JSONB
 
 ### Growth Stages
+
 0. Seed (Just planted)
 1. Sprout (Initial growth)
 2. Growing (Mid development)
@@ -134,6 +139,7 @@
 4. Harvestable (Ready for collection)
 
 ### Constraints
+
 - One plant per tile (UNIQUE constraint)
 - Valid growth_stage (0-4)
 - Valid health range (0-100)
@@ -145,41 +151,50 @@
 ## 3. Validation Functions
 
 ### validate_user()
+
 - Validates username length (min 3 chars)
 - Validates email format
 
 ### validate_player_stats()
+
 - Validates level is positive
 - Validates experience is non-negative
 - Validates coins are non-negative
 
 ### validate_plant()
+
 - Validates growth_time is positive
 - Validates base_price is positive
 - Validates harvest_min/max ranges
 
 ### validate_tool()
+
 - Validates durability is positive
 - Validates base_price is positive
 
 ### validate_market_listing()
+
 - Validates quantity is positive
 - Validates price_per_unit is positive
 
 ### validate_auction()
+
 - Validates bid amounts hierarchy
 - Validates end time is future
 - Validates price relationships
 
 ### validate_world()
+
 - Validates world dimensions
 - Ensures positive dimensions
 
 ### validate_world_tile()
+
 - Validates x_coord/y_coord non-negative
 - Ensures unique tiles per world
 
 ### validate_item_exists()
+
 - Validates plantable items exist
 - Validates tool items exist
 

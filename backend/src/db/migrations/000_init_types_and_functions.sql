@@ -10,7 +10,7 @@ CREATE TYPE item_type_enum AS ENUM ('plantable', 'tool', 'harvested_crop');
 CREATE TYPE rarity_enum AS ENUM ('common', 'uncommon', 'rare', 'epic', 'legendary');
 CREATE TYPE season_enum AS ENUM ('spring', 'summer', 'fall', 'winter');
 CREATE TYPE plantable_category_enum AS ENUM ('vegetable', 'grain'); -- Future: 'tree', 'fruit', 'flower', 'magical'
-CREATE TYPE terrain_type_enum AS ENUM ('grass', 'stone', 'tree_sticks', 'tree_residue');
+CREATE TYPE terrain_type_enum AS ENUM ('grass', 'tree_sticks', 'tree_residue');
 
 -- Common validation functions
 CREATE OR REPLACE FUNCTION validate_item_exists(item_type item_type_enum, item_id integer)
@@ -47,7 +47,7 @@ DECLARE
   terrain terrain_type_enum;
   target_obstacles INTEGER;
   obstacle_count INTEGER := 0;
-  starting_area_tiles terrain_type_enum[36];
+  starting_area_tiles terrain_type_enum[100];
   i INTEGER;
 BEGIN
   -- Create world entry
@@ -57,7 +57,7 @@ BEGIN
   target_obstacles := 3 + floor(random() * 5)::INTEGER;
 
   -- Initialize starting area with grass
-  FOR i IN 0..35 LOOP
+  FOR i IN 0..99 LOOP
     starting_area_tiles[i] := 'grass'::terrain_type_enum;
   END LOOP;
 
@@ -73,15 +73,14 @@ BEGIN
   -- Fill 100x100 grid
   FOR x IN 0..99 LOOP
     FOR y IN 0..99 LOOP
-      IF (x BETWEEN 47 AND 52 AND y BETWEEN 47 AND 52) THEN
-        terrain := starting_area_tiles[(y - 47) * 6 + (x - 47)];
+      IF (x BETWEEN 45 AND 54 AND y BETWEEN 45 AND 54) THEN
+        terrain := starting_area_tiles[(y - 45) * 10 + (x - 45)];
       ELSE
         random_value := random();
         terrain := CASE
           WHEN random_value < 0.65 THEN 'grass'::terrain_type_enum
           WHEN random_value < 0.80 THEN 'tree_sticks'::terrain_type_enum
-          WHEN random_value < 0.925 THEN 'tree_residue'::terrain_type_enum
-          ELSE 'stone'::terrain_type_enum
+          ELSE 'tree_residue'::terrain_type_enum
         END;
       END IF;
 
@@ -169,7 +168,7 @@ BEGIN
     AND locked = false;
 
     RETURN CASE
-        WHEN owned_tiles < 36 THEN 0           -- Initial 6x6 grid (free)
+        WHEN owned_tiles < 100 THEN 0           -- Initial 10x10 grid (free)
         WHEN owned_tiles < 250 THEN 50         -- First tier
         WHEN owned_tiles < 500 THEN 150        -- Second tier
         WHEN owned_tiles < 1000 THEN 300       -- Third tier

@@ -27,9 +27,6 @@ frontend/build/
 # Backend temporary files
 backend/.deno/
 
-# Cache files for Phaser.js
-frontend/.phaser/
-
 # IDE or editor settings
 .vscode/
 .idea/
