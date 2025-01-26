@@ -305,6 +305,7 @@ export class MapScene extends Scene {
         this.lockedOverlay.setDepth(100);
 
         this.hoverGraphics = this.add.graphics();
+        this.hoverGraphics.setDepth(101);
 
         // Setup camera
         this.cameras.main.setBounds(0, 0, TOTAL_SIZE, TOTAL_SIZE);
